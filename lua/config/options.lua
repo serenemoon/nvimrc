@@ -120,3 +120,6 @@ opt.wrap = false -- Disable line wrap
 
 -- Fix markdown indentation settings
 vim.g.markdown_recommended_style = 0
+
+-- 默认关闭错误显示kk
+vim.diagnostic.enable(false)

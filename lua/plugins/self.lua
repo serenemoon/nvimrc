@@ -11,7 +11,6 @@
 return {
   -- add gruvbox
   { "ellisonleao/gruvbox.nvim" },
-
   -- Configure LazyVim to load gruvbox
   {
     "LazyVim/LazyVim",
@@ -160,6 +159,7 @@ return {
     "mason-org/mason.nvim",
     opts = {
       ensure_installed = {
+        "gitui",
         "stylua",
         "shellcheck",
         "shfmt",
