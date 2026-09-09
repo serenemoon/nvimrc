@@ -11,6 +11,8 @@
 return {
   -- add gruvbox
   { "ellisonleao/gruvbox.nvim" },
+  -- highlight words
+  { "dwrdx/mywords.nvim" },
   -- Configure LazyVim to load gruvbox
   {
     "LazyVim/LazyVim",

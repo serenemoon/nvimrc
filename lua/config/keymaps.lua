@@ -68,3 +68,15 @@ vim.keymap.del({ "n" }, "<C-l>")
 
 vim.keymap.del({ "n" }, "L")
 vim.keymap.del({ "n" }, "H")
+
+vim.keymap.set("n", "mm", function()
+  require("mywords").hl_toggle()
+end, { desc = "Toggle highlight" })
+
+vim.keymap.set("n", "mr", function()
+  require("mywords").hl_toggle_regex()
+end, { desc = "Toggle highlight regexp" })
+
+vim.keymap.set("n", "mn", function()
+  require("mywords").uhl_all()
+end, { desc = "Unhightlight all highlights" })
