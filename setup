@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+DIRN=$(dirname $(readlink -f $0))
+echo script dirname: $DIRN
+
+# for linux
+mkdir -p ~/.config
+cd ~/.config
+[[ -L nvim ]] && rm nvim
+[[ -d nvim && ! -L nvim ]] && mv nvim nvim.bak.$$
+ln -f -s $DIRN nvim && echo ~/.config/nvim linked to $DIRN

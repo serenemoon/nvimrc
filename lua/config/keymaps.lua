@@ -65,6 +65,7 @@ vim.keymap.del({ "n" }, "<C-h>")
 vim.keymap.del({ "n" }, "<C-j>")
 vim.keymap.del({ "n" }, "<C-k>")
 vim.keymap.del({ "n" }, "<C-l>")
+-- vim.keymap.del({ "n", "x" }, "<space><space>")
 
 vim.keymap.del({ "n" }, "L")
 vim.keymap.del({ "n" }, "H")
