@@ -2,6 +2,17 @@
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
 --
+--
+-- 禁用Lazyvim默认快捷键
+vim.keymap.del({ "n" }, "<C-h>")
+vim.keymap.del({ "n" }, "<C-j>")
+vim.keymap.del({ "n" }, "<C-k>")
+vim.keymap.del({ "n" }, "<C-l>")
+
+vim.keymap.del({ "n" }, "L")
+vim.keymap.del({ "n" }, "H")
+
+-- 自定义快捷键
 
 local function reload_current_script()
   local path = vim.fn.expand("%:p")
@@ -60,16 +71,6 @@ vim.keymap.set("n", "<A-m><A-m>", function()
   require("render-markdown").toggle()
 end, { desc = "Toggle all markdown render" })
 
--- 禁用Lazyvim默认快捷键
-vim.keymap.del({ "n" }, "<C-h>")
-vim.keymap.del({ "n" }, "<C-j>")
-vim.keymap.del({ "n" }, "<C-k>")
-vim.keymap.del({ "n" }, "<C-l>")
--- vim.keymap.del({ "n", "x" }, "<space><space>")
-
-vim.keymap.del({ "n" }, "L")
-vim.keymap.del({ "n" }, "H")
-
 vim.keymap.set("n", "mm", function()
   require("mywords").hl_toggle()
 end, { desc = "Toggle highlight" })
@@ -81,3 +82,11 @@ end, { desc = "Toggle highlight regexp" })
 vim.keymap.set("n", "mn", function()
   require("mywords").uhl_all()
 end, { desc = "Unhightlight all highlights" })
+
+vim.keymap.set("n", "<F5>", function()
+  vim.cmd([[:AsyncTask file-run]])
+end, { desc = "async run file" })
+
+vim.keymap.set("n", "<F9>", function()
+  vim.cmd([[:AsyncTask file-build]])
+end, { desc = "async build file" })

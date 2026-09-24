@@ -1,27 +1,26 @@
--- preview-on-top layout: preview window on top, input + list on bottom
-local preview_top_layout = {
-  layout = {
-    box = "vertical",
-    backdrop = false,
-    width = 0.8,
-    min_width = 120,
-    height = 0.8,
-    border = true,
-    title = "{title} {live} {flags}",
-    title_pos = "center",
-    { win = "preview", title = "{preview}", height = 0.4, border = "bottom" },
-    {
-      box = "vertical",
-      { win = "input", height = 1, border = "top" },
-      { win = "list", border = "none" },
-    },
-  },
-}
-
 -- <leader>R: search the word under the cursor in the current repo via Snacks picker
 return {
   {
     "folke/snacks.nvim",
+    opts = {
+      picker = {
+        layout = {
+          preview = false,
+        },
+        sources = {
+          explorer = {
+            win = {
+              list = {
+                keys = {
+                  ["|"] = "edit_vsplit",
+                  ["-"] = "edit_split",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     keys = {
       {
         "<leader>R",
@@ -36,9 +35,22 @@ return {
           local dir = file ~= "" and vim.fn.fnamemodify(file, ":h") or vim.fn.getcwd()
           local root = vim.fs.find(".git", { upward = true, path = dir, type = "directory" })[1]
           local cwd = root and vim.fn.fnamemodify(root, ":h") or vim.fn.getcwd()
-          Snacks.picker.grep({ search = word, cwd = cwd, layout = preview_top_layout })
+          Snacks.picker.grep({ search = word, cwd = cwd })
         end,
-        desc = "Search word under cursor (repo grep)",
+        desc = "Search word under cursor (root grep)",
+        mode = { "n", "x" },
+      },
+      {
+        "<leader>r",
+        function()
+          -- resolve the git repo root of the current file
+          local file = vim.api.nvim_buf_get_name(0)
+          local dir = file ~= "" and vim.fn.fnamemodify(file, ":h") or vim.fn.getcwd()
+          local root = vim.fs.find(".git", { upward = true, path = dir, type = "directory" })[1]
+          local cwd = root and vim.fn.fnamemodify(root, ":h") or vim.fn.getcwd()
+          Snacks.picker.grep({ cwd = cwd, live = true })
+        end,
+        desc = "Search word (repo grep)",
         mode = { "n", "x" },
       },
       {
@@ -53,7 +65,6 @@ return {
             pattern = word,
             search = "",
             title = "Buffer Lines: ",
-            layout = preview_top_layout,
           })
         end,
         desc = "Search word under cursor (current buffer)",
@@ -62,7 +73,7 @@ return {
       {
         "<leader>m",
         function()
-          Snacks.picker.recent({ layout = preview_top_layout })
+          Snacks.picker.recent()
         end,
         desc = "Recent files",
       },
@@ -75,7 +86,6 @@ return {
             return
           end
           Snacks.picker.recent({
-            layout = preview_top_layout,
             filter = { cwd = repo },
             title = "Recent files in repo",
           })
@@ -95,7 +105,6 @@ return {
             dirs = dirs,
             live = true,
             title = "Camera HAL Grep (live)",
-            layout = preview_top_layout,
           })
         end,
         desc = "Grep camera HAL dirs (live)",
@@ -119,7 +128,6 @@ return {
             dirs = dirs,
             live = true,
             title = "Camera HAL Grep: " .. word,
-            layout = preview_top_layout,
           })
         end,
         desc = "Grep camera HAL dirs (word under cursor)",
@@ -134,9 +142,16 @@ return {
             return
           end
           local dirs = require("snacks_custom").camera_dirs(repo)
-          Snacks.picker.files({ dirs = dirs, layout = preview_top_layout })
+          Snacks.picker.files({ dirs = dirs })
         end,
         desc = "Find files in camera HAL dirs",
+      },
+      {
+        "go",
+        function()
+          Snacks.picker.resume()
+        end,
+        desc = "Resume Recent Pickers",
       },
     },
   },

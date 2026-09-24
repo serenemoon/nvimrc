@@ -124,3 +124,7 @@ vim.g.markdown_recommended_style = 0
 -- 默认关闭错误显示kk
 vim.diagnostic.enable(false)
 
+-- async task / async run
+vim.g.asyncrun_open = 6
+
+vim.g.asynctasks_extra_config = { vim.fs.joinpath(vim.fn.stdpath("config"), "async_tasks.ini") }

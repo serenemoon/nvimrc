@@ -13,6 +13,9 @@ return {
   { "ellisonleao/gruvbox.nvim" },
   -- highlight words
   { "dwrdx/mywords.nvim" },
+
+  { 'skywind3000/asynctasks.vim' },
+  { 'skywind3000/asyncrun.vim' },
   -- Configure LazyVim to load gruvbox
   {
     "LazyVim/LazyVim",
@@ -20,7 +23,6 @@ return {
       colorscheme = "gruvbox",
     },
   },
-
   -- change trouble config
   {
     "folke/trouble.nvim",
