@@ -71,22 +71,12 @@ vim.keymap.set("n", "<A-m><A-m>", function()
   require("render-markdown").toggle()
 end, { desc = "Toggle all markdown render" })
 
-vim.keymap.set("n", "mm", function()
-  require("mywords").hl_toggle()
-end, { desc = "Toggle highlight" })
-
-vim.keymap.set("n", "mr", function()
-  require("mywords").hl_toggle_regex()
-end, { desc = "Toggle highlight regexp" })
-
-vim.keymap.set("n", "mn", function()
-  require("mywords").uhl_all()
-end, { desc = "Unhightlight all highlights" })
-
+-- run file
 vim.keymap.set("n", "<F5>", function()
   vim.cmd([[:AsyncTask file-run]])
 end, { desc = "async run file" })
 
+-- build file
 vim.keymap.set("n", "<F9>", function()
   vim.cmd([[:AsyncTask file-build]])
 end, { desc = "async build file" })

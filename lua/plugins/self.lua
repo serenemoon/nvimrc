@@ -11,8 +11,6 @@
 return {
   -- add gruvbox
   { "ellisonleao/gruvbox.nvim" },
-  -- highlight words
-  { "dwrdx/mywords.nvim" },
 
   { 'skywind3000/asynctasks.vim' },
   { 'skywind3000/asyncrun.vim' },
@@ -168,5 +166,5 @@ return {
 
   {
     "Yggdroot/LeaderF"
-  },
+  }
 }
