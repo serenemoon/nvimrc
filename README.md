@@ -80,6 +80,8 @@
 | `<A-q>` | 退出 |
 | `<A-M><A-M>` | 切换当前 buffer Markdown 渲染 |
 | `<A-m><A-m>` | 全局切换 Markdown 渲染 |
+| `<M-r>` | 列出 .repo 根目录下所有 git 仓库(读缓存)，选中后用 explorer 打开 |
+| `<M-R>` | 同上，但强制重新扫描并刷新 `.repo_gits` 缓存 |
 
 ### Picker 布局
 
@@ -87,10 +89,17 @@
 
 ## .repo 仓库支持
 
-`lua/snacks_custom.lua` 提供两个辅助函数：
+`lua/snacks_custom.lua` 提供一个辅助函数：
 
-- `find_repo_root()` — 从当前文件向上查找 `.repo` 目录，返回仓库根路径
-- `camera_dirs(repo)` — 返回 camera HAL 相关目录列表（自动过滤不存在的路径）
+- `camera_dirs(filepath)` — 传入当前文件路径，返回 camera HAL 相关目录列表（自动过滤不存在的路径）；未匹配到任何分组时返回空列表
+
+  仓库根路径通过 `vim.fs.root(filepath, ".repo")` 从当前文件向上查找 `.repo` 目录获取。函数将文件相对仓库根目录的路径与 `dir2dirs` 中每个分组下的每个值做前缀匹配，任一值匹配即把整个分组加入搜索目录。
+
+- `git_repos(filepath, refresh?)` — 传入当前文件路径，递归扫描 `.repo` 根目录下所有含 `.git` 目录的仓库，返回其父目录列表（排序后）；不在 `.repo` 树下时返回 `nil`
+
+  仓库列表优先在 `.repo` 根目录执行 `repo list -p -f` 获取；`repo` 不存在或执行失败时回退为扫描含 `.git` 的目录（依次用 `fd`、`find`、`vim.fs.find`）。结果缓存在 `<repo根>/.repo_gits`，下次存在该文件时直接读取；传 `refresh = true` 可强制重新获取。
+
+- `pick_git_repos(refresh?)` — 用 snacks picker 列出上述仓库，选中后用 explorer 打开；`<M-r>` 读缓存，`<M-R>` 强制刷新
 
 搜索的目录包括：
 

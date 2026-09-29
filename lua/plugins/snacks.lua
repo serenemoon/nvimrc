@@ -80,7 +80,7 @@ return {
       {
         "<leader>M",
         function()
-          local repo = require("snacks_custom").find_repo_root()
+          local repo = vim.fs.root(0, ".repo")
           if not repo then
             vim.notify("No .repo directory found", vim.log.levels.WARN)
             return
@@ -95,12 +95,12 @@ return {
       {
         "<leader><leader>r",
         function()
-          local repo = require("snacks_custom").find_repo_root()
+          local repo = vim.fs.root(0, ".repo")
           if not repo then
             vim.notify("No .repo directory found", vim.log.levels.WARN)
             return
           end
-          local dirs = require("snacks_custom").camera_dirs(repo)
+          local dirs = require("snacks_custom").camera_dirs(vim.api.nvim_buf_get_name(0))
           Snacks.picker.grep({
             dirs = dirs,
             live = true,
@@ -117,12 +117,12 @@ return {
             vim.notify("No word under cursor", vim.log.levels.WARN)
             return
           end
-          local repo = require("snacks_custom").find_repo_root()
+          local repo = vim.fs.root(0, ".repo")
           if not repo then
             vim.notify("No .repo directory found", vim.log.levels.WARN)
             return
           end
-          local dirs = require("snacks_custom").camera_dirs(repo)
+          local dirs = require("snacks_custom").camera_dirs(vim.api.nvim_buf_get_name(0))
           Snacks.picker.grep({
             search = word,
             dirs = dirs,
@@ -136,15 +136,49 @@ return {
       {
         ",fF",
         function()
-          local repo = require("snacks_custom").find_repo_root()
+          local repo = vim.fs.root(0, ".repo")
           if not repo then
             vim.notify("No .repo directory found", vim.log.levels.WARN)
             return
           end
-          local dirs = require("snacks_custom").camera_dirs(repo)
+          local dirs = require("snacks_custom").camera_dirs(vim.api.nvim_buf_get_name(0))
           Snacks.picker.files({ dirs = dirs })
         end,
         desc = "Find files in camera HAL dirs",
+      },
+      {
+        ",ff",
+        function()
+          local dir = vim.fs.root(0, ".git") or vim.fn.getcwd()
+          Snacks.picker.files({ dirs = { dir } })
+        end,
+        desc = "Find files in git dir",
+      },
+      {
+        "<M-r>",
+        function()
+          require("snacks_custom").pick_git_repos()
+        end,
+        desc = "Open git dir in repo (explorer, cached)",
+      },
+      {
+        "<M-R>",
+        function()
+          require("snacks_custom").pick_git_repos(true)
+        end,
+        desc = "Open git dir in repo (explorer, refresh)",
+      },
+      {
+        "<leader>fP",
+        function()
+          local lazydir = vim.fs.joinpath(vim.fn.stdpath("data"), "lazy")
+          if not lazydir then
+            vim.notify("No lazy directory found")
+            return
+          end
+          Snacks.picker.files({ dirs = { lazydir }, title = "Plugin Files" })
+        end,
+        desc = "Find files in plugins dirs",
       },
       {
         "go",
@@ -152,6 +186,34 @@ return {
           Snacks.picker.resume()
         end,
         desc = "Resume Recent Pickers",
+      },
+      {
+        "<F3>", -- 打开当前文件所在目录
+        function()
+          require("snacks_custom").open_focus_close(vim.fn.expand("%:p:h"))
+        end,
+        desc = "Open Cur File Directory",
+      },
+      {
+        "<F15>", -- Shift+F3 打开当前文件所在项目根目录
+        function()
+          require("snacks_custom").open_focus_close(vim.fs.root(0, ".git"))
+        end,
+        desc = "Open Git Root Directory",
+      },
+      {
+        "<F4>", -- 打开所在repo根目录
+        function()
+          require("snacks_custom").open_focus_close(vim.fs.root(0, ".repo"))
+        end,
+        desc = "Open Repo Root Directory",
+      },
+      {
+        "<F16>", -- Shift+F4 打开用户目录
+        function()
+          require("snacks_custom").open_focus_close("~")
+        end,
+        desc = "Open User Home Directory",
       },
     },
   },
