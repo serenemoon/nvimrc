@@ -128,3 +128,8 @@ vim.keymap.set(
   yank_to_search_register,
   { desc = "复制光标下符号/选区到搜索寄存器 /" }
 )
+
+-- lsp hover
+vim.keymap.set("n", "<C-k>", function()
+  vim.lsp.buf.hover()
+end, { desc = "LSP Hover" })
