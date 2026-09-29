@@ -54,6 +54,21 @@ return {
         mode = { "n", "x" },
       },
       {
+        "<leader>l",
+        function()
+          Snacks.picker.lines()
+        end,
+        desc = "Grep buffer lines",
+        mode = { "n", "x" },
+      },
+      {
+        "<leader><leader>l",
+        function()
+          vim.cmd("Lazy")
+        end,
+        desc = "Lazy",
+      },
+      {
         "<leader>L",
         function()
           local word = vim.fn.expand("<cword>")

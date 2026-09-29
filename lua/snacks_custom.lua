@@ -74,9 +74,11 @@ local function scan_git_repos(root)
       add(vim.fn.fnamemodify(line, ":h"))
     end
   else
-    for _, line in ipairs(vim.fs.find(function(name)
-      return name == ".git"
-    end, { path = root, type = "directory", limit = math.huge })) do
+    for _, line in
+      ipairs(vim.fs.find(function(name)
+        return name == ".git"
+      end, { path = root, type = "directory", limit = math.huge }))
+    do
       add(vim.fn.fnamemodify(line, ":h"))
     end
   end
@@ -165,6 +167,8 @@ local CAMINTF = "drivers/interface/camera"
 local CAMFWK = "foundation/multimedia/camera_framework"
 local IMGFWK = "foundation/multimedia/image_framework"
 local IMGEFFECT = "foundation/multimedia/image_effect"
+local HELPSFWK = "vendor/huawei/base/hiviewdfx/helps_fwk"
+local HWJS = "vendor/huawei/interface/hmscore_sdk_js"
 
 --- Build the list of camera HAL search directories for the current file.
 --- The file path is used to locate the enclosing .repo root, then the file's
@@ -189,6 +193,7 @@ function M.camera_dirs(filepath)
     { CAMHAL, CAMINC, CAMPROD, IPSHAL, IPSINC },
     { CAMHAL, CAMINC, CAMPROD, CAMINTF },
     { CAMFWK, IMGFWK, IMGEFFECT, CAMINTF, CAMHAL, CAMINC, CAMPROD },
+    { CAMFWK, HELPSFWK, HWJS },
   }
 
   local dirs = {}

@@ -80,3 +80,51 @@ end, { desc = "async run file" })
 vim.keymap.set("n", "<F9>", function()
   vim.cmd([[:AsyncTask file-build]])
 end, { desc = "async build file" })
+
+-- lsp infos
+vim.keymap.set("n", "<F10>", function()
+  vim.cmd([[:checkhealth vim.lsp]])
+end, { desc = "check health vimlsp" })
+vim.keymap.set("n", "<F22>", function()
+  vim.cmd([[:tabnew ~/.local/state/nvim/lsp.log]])
+end, { desc = "check health vimlsp" })
+
+-- copy symbol/selection into the search register /
+local function yank_to_search_register()
+  local mode = vim.fn.mode()
+  local is_visual = mode == "v" or mode == "V" or mode == "\22"
+  local text
+  if is_visual then
+    -- visual 模式：取选中的字符串（先规范起点/终点顺序）。
+    -- 注意：在 x 模式映射里 visualmode() 可能是空的（本会话尚未用过 visual 时会这样，
+    -- 用它会触发 E475 导致映射中断），因此直接用 mode() 作为选区类型。
+    local s = vim.fn.getpos("v")
+    local e = vim.fn.getpos(".")
+    if s[2] > e[2] or (s[2] == e[2] and s[3] > e[3]) then
+      s, e = e, s
+    end
+    text = table.concat(vim.fn.getregion(s, e, { type = mode }), "\n")
+  else
+    -- normal 模式：取光标下的 symbol
+    text = vim.fn.expand("<cword>")
+  end
+  if text == "" then
+    vim.notify("没有可复制的符号", vim.log.levels.WARN)
+  else
+    local escaped = vim.fn.escape(text, [[\/.*[]~^$]])
+    vim.fn.setreg("/", escaped)
+    vim.notify("已复制到 /: " .. escaped, vim.log.levels.INFO)
+    vim.cmd([[set hls]])
+  end
+  -- visual 模式下复制完成后退出 visual 模式
+  if is_visual then
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+  end
+end
+
+vim.keymap.set(
+  { "n", "x" },
+  "K",
+  yank_to_search_register,
+  { desc = "复制光标下符号/选区到搜索寄存器 /" }
+)

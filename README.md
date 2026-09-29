@@ -63,6 +63,8 @@
 | 快捷键 | 功能 |
 |--------|------|
 | `<space>R` | 在当前 git 仓库内 grep 光标下 symbol |
+| `<space>l` | 在当前 buffer 内 grep |
+| `<space><space>l` | 打开 Lazy |
 | `<space>L` | 在当前文件内搜索光标下 symbol |
 | `<space>m` | 最近打开的文件 |
 | `<space>M` | 最近打开的文件 (仅当前 .repo 仓库) |

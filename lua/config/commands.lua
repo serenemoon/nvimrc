@@ -1,3 +1,25 @@
+-- :LspLog [level] - 打开 LSP 日志文件；带参数时先设置日志级别再打开。
+-- level: trace|debug|info|warn|error|off，省略则保持当前级别。
+vim.api.nvim_create_user_command("LspLog", function(opts)
+  local arg = opts.args ~= "" and opts.args:lower() or nil
+  if arg then
+    local level = vim.log.levels[arg:upper()]
+    if not level then
+      vim.notify("无效的日志级别: " .. opts.args .. " (可用: trace/debug/info/warn/error/off)", vim.log.levels.ERROR)
+      return
+    end
+    vim.lsp.log.set_level(level)
+    vim.notify("LSP 日志级别已设置为 " .. arg:upper(), vim.log.levels.INFO)
+  end
+  vim.cmd.edit(vim.lsp.get_log_path())
+end, {
+  nargs = "?",
+  complete = function()
+    return { "trace", "debug", "info", "warn", "error", "off" }
+  end,
+  desc = "打开 LSP 日志(可选: 先设置日志级别)",
+})
+
 -- 定义 :Lua 命令 - 将结果输出到新缓冲区
 vim.api.nvim_create_user_command("Lua", function(opts)
   local code = opts.args
