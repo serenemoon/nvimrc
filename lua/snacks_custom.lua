@@ -219,4 +219,39 @@ function M.camera_dirs(filepath)
   return dirs
 end
 
+function M.pick_async_tasks()
+  -- 1. 调用 Vimscript 函数获取任务列表
+  local tasks = vim.fn["asynctasks#list"]("")
+
+  -- 2. 把 Vimscript 列表转换成 picker items
+  local items = {}
+  for _, task in ipairs(tasks) do
+    table.insert(items, {
+      -- text 字段是 picker 用来显示和搜索的内容
+      text = task.name .. " | " .. task.command,
+      -- 把 task 对象本身存起来，方便后续使用
+      task = task,
+    })
+  end
+
+  -- 3. 创建 picker
+  Snacks.picker({
+    title = "AsyncTasks",
+    items = items,
+    format = function(item)
+      -- 自定义显示格式：任务名 + 命令
+      return {
+        { item.task.name, "DiagnosticInfo" },
+        { " | ", "Comment" },
+        { item.task.command, "Normal" },
+      }
+    end,
+    confirm = function(picker, item)
+      picker:close()
+      -- 选中后执行对应的任务
+      vim.cmd("AsyncTask " .. item.task.name)
+    end,
+  })
+end
+
 return M

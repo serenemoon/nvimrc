@@ -24,6 +24,13 @@ return {
     keys = {
       { "<leader><space>", false, desc = "禁用 Find Files" },
       {
+        "<M-t>",
+        function()
+          require("snacks_custom").pick_async_tasks()
+        end,
+        desc = "禁用 Find Files",
+      },
+      {
         "<leader>R",
         function()
           local word = vim.fn.expand("<cword>")
@@ -196,7 +203,7 @@ return {
           end
           Snacks.picker.files({ dirs = { lazydir }, title = "Plugin Files" })
         end,
-        desc = "Find files in plugins dirs",
+        desc = "Find Plugin Files",
       },
       {
         "go",
