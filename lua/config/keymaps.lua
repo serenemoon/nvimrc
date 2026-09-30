@@ -3,14 +3,13 @@
 -- Add any additional keymaps here
 --
 --
--- 禁用Lazyvim默认快捷键
-vim.keymap.del({ "n" }, "<C-h>")
-vim.keymap.del({ "n" }, "<C-j>")
-vim.keymap.del({ "n" }, "<C-k>")
-vim.keymap.del({ "n" }, "<C-l>")
-
-vim.keymap.del({ "n" }, "L")
-vim.keymap.del({ "n" }, "H")
+-- 禁用 LazyVim 默认快捷键
+-- 这些是 lazyvim.config.keymaps 里用 map() 直接注册的核心键(以及 bufferline 的
+-- <S-h>/<S-l>),不属于 lazy.nvim 的懒加载 keys,无法用 { lhs, false } 的 spec 写法
+-- 禁用,只能用 vim.keymap.del 删除。用 pcall 兜底,避免键未定义时抛 E31。
+for _, key in ipairs({ "<C-h>", "<C-j>", "<C-k>", "<C-l>", "L", "H" }) do
+  pcall(vim.keymap.del, "n", key)
+end
 
 -- 自定义快捷键
 
@@ -124,12 +123,7 @@ end
 
 vim.keymap.set(
   { "n", "x" },
-  "K",
+  "<C-k>",
   yank_to_search_register,
   { desc = "复制光标下符号/选区到搜索寄存器 /" }
 )
-
--- lsp hover
-vim.keymap.set("n", "<C-k>", function()
-  vim.lsp.buf.hover()
-end, { desc = "LSP Hover" })

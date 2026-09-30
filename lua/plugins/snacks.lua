@@ -22,6 +22,7 @@ return {
       },
     },
     keys = {
+      { "<leader><space>", false, desc = "禁用 Find Files" },
       {
         "<leader>R",
         function()
@@ -81,6 +82,7 @@ return {
             search = "",
             title = "Buffer Lines: ",
           })
+          vim.defer_fn(vim.cmd.stopinsert, 50)
         end,
         desc = "Search word under cursor (current buffer)",
         mode = { "n", "x" },
@@ -144,6 +146,7 @@ return {
             live = true,
             title = "Camera HAL Grep: " .. word,
           })
+          vim.defer_fn(vim.cmd.stopinsert, 50)
         end,
         desc = "Grep camera HAL dirs (word under cursor)",
         mode = { "n", "x" },
@@ -199,6 +202,7 @@ return {
         "go",
         function()
           Snacks.picker.resume()
+          vim.defer_fn(vim.cmd.stopinsert, 50)
         end,
         desc = "Resume Recent Pickers",
       },
