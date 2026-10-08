@@ -111,6 +111,10 @@ local function yank_to_search_register()
     vim.notify("没有可复制的符号", vim.log.levels.WARN)
   else
     local escaped = vim.fn.escape(text, [[\/.*[]~^$]])
+    -- normal 模式按单词边界搜索(\<...\>);visual 模式按选中文本原样搜索(非边界)
+    if not is_visual then
+      escaped = [[\<]] .. escaped .. [[\>]]
+    end
     vim.fn.setreg("/", escaped)
     vim.notify("已复制到 /: " .. escaped, vim.log.levels.INFO)
     vim.cmd([[set hls]])
@@ -121,9 +125,40 @@ local function yank_to_search_register()
   end
 end
 
+-- K：复制光标下符号/选区到搜索寄存器 /
+-- <C-k>：LSP hover
 vim.keymap.set(
   { "n", "x" },
-  "<C-k>",
+  "K",
   yank_to_search_register,
   { desc = "复制光标下符号/选区到搜索寄存器 /" }
 )
+vim.keymap.set("n", "<C-k>", function()
+  vim.lsp.buf.hover()
+end, { desc = "LSP Hover" })
+
+-- Neovim 核心在 LSP attach 时,若此刻全局 K 为空,会为 buffer 设置 buffer-local 的
+-- K = hover(runtime/lua/vim/lsp.lua);LazyVim 也会为 LSP buffer 设 K。本文件按
+-- LazyVim 的约定在 VeryLazy 才加载,晚于 LSP attach,故全局 K 盖不住核心的
+-- buffer-local 映射。这里在 LspAttach 时把 buffer-local K 重新指回本函数。
+-- (LazyVim 侧的同名 K 已在 lua/plugins/self.lua 里用 { "K", false } 关闭。)
+local function map_search_register(buf)
+  vim.keymap.set({ "n", "x" }, "K", yank_to_search_register, {
+    buffer = buf,
+    desc = "复制光标下符号/选区到搜索寄存器 /",
+  })
+end
+
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("SearchRegisterKey", { clear = true }),
+  callback = function(args)
+    map_search_register(args.buf)
+  end,
+})
+
+-- 本文件加载时可能已有 buffer 完成 LSP attach(如 `nvim file.c`),补设一次。
+for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+  if vim.api.nvim_buf_is_loaded(buf) and #vim.lsp.get_clients({ bufnr = buf }) > 0 then
+    map_search_register(buf)
+  end
+end

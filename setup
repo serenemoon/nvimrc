@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DIRN=$(dirname $(readlink -f $0))
+DIRN=$(readlink -f $(dirname $0))
 echo script dirname: $DIRN
 
 # for linux
@@ -9,3 +9,7 @@ cd ~/.config
 [[ -L nvim ]] && rm nvim
 [[ -d nvim && ! -L nvim ]] && mv nvim nvim.bak.$$
 ln -f -s $DIRN nvim && echo ~/.config/nvim linked to $DIRN
+
+# 如果不存在 tree-sitter，则直接用这个仓的
+mkdir -p ~/bin
+which tree-sitter || ln -s -f $DIRN/external/tree-sitter ~/bin/tree-sitter

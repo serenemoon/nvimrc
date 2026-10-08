@@ -48,6 +48,13 @@ return {
     opts = {
       ---@type lspconfig.options
       servers = {
+        ["*"] = {
+          keys = {
+            -- 解除 LazyVim 在 LSP buffer 内对 K 的 hover 绑定(buffer-local 会盖住
+            -- keymaps.lua 里的全局 K),改由 <C-k> 承担 hover
+            { "K", false },
+          },
+        },
         -- pyright will be automatically installed with mason and loaded with lspconfig
         pyright = {},
       },

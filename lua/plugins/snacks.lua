@@ -1,4 +1,29 @@
 -- <leader>R: search the word under the cursor in the current repo via Snacks picker
+
+-- 在 snacks.explorer 里,于**同一目录**的节点间移动,不进入已展开目录的子节点。
+-- 同级判定:相邻 item 的 parent 引用相同;顶层节点的 parent 为 nil,也归为一组。
+-- 因此从当前项沿列表向 delta 方向找第一个 parent 相同的项即下一个同级节点,
+-- 其间夹着的目录子项会被跳过。
+local function move_sibling(picker, delta)
+  local list = picker.list
+  local cur = list.cursor
+  local item = list:get(cur)
+  if not item then
+    return
+  end
+  local parent = item.parent
+  local count = list:count()
+  local idx = cur + delta
+  while idx >= 1 and idx <= count do
+    local other = list:get(idx)
+    if other and other.parent == parent then
+      list:view(idx)
+      return
+    end
+    idx = idx + delta
+  end
+end
+
 return {
   {
     "folke/snacks.nvim",
@@ -7,6 +32,14 @@ return {
         layout = {
           preview = false,
         },
+        actions = {
+          explorer_sibling_next = function(picker)
+            move_sibling(picker, 1)
+          end,
+          explorer_sibling_prev = function(picker)
+            move_sibling(picker, -1)
+          end,
+        },
         sources = {
           explorer = {
             win = {
@@ -14,6 +47,11 @@ return {
                 keys = {
                   ["|"] = "edit_vsplit",
                   ["-"] = "edit_split",
+                  ["u"] = "explorer_up",
+                  ["<c-r>"] = "explorer_update",
+                  -- 同一目录内上/下移动,跳过已展开目录的子节点
+                  ["<C-j>"] = { "explorer_sibling_next", mode = { "n" } },
+                  ["<C-k>"] = { "explorer_sibling_prev", mode = { "n" } },
                 },
               },
             },
