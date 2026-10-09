@@ -1,0 +1,198 @@
+---
+BasedOnStyle:  Google
+---
+
+# 定制化，基于Google规范，Google的规范在后面以注释的形式枚举了
+Language:        Cpp
+IndentWidth:     4                  # 缩进空格
+AccessModifierOffset: -4                    # 让 public/private 跟类名同缩进
+AllowShortFunctionsOnASingleLine: None    # 所有函数体都不与函数名同行，规则允许，但检查工具报警!!!
+AllowShortIfStatementsOnASingleLine: Never  # 不准 单行的 If 语句
+AllowShortLoopsOnASingleLine: false # 是否允许单行循环
+SpaceAfterTemplateKeyword: false    # template与尖括号之间是否加空格
+SpaceBeforeCpp11BracedList: true    # 左大括号前面跟随变量时，是否加空格
+Cpp11BracedListStyle: false         # 大括号里面左右是否 不 加空格
+SpacesBeforeTrailingComments: 1     # 行尾注释符前面几个空格
+ReflowComments:  false              # 是否格式化注释内容
+PointerAlignment: Right             # 指针标识 * 靠近哪边, 右边是贴近变量
+ColumnLimit: 120                    # 行宽限制
+BreakBeforeBraces: Custom           # 自定义左大括号是否另起一行
+BraceWrapping:
+  AfterCaseLabel:  false
+  AfterClass:      false
+  AfterControlStatement: false
+  AfterEnum:       false
+  AfterFunction:   true             # 除了函数另起一行，其它都跟随行尾
+  AfterNamespace:  false
+  AfterObjCDeclaration: false
+  AfterStruct:     false
+  AfterUnion:      false
+  AfterExternBlock: false
+  BeforeCatch:     false
+  BeforeElse:      false
+  IndentBraces:    false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+# END OF CUSTOMIZATION
+
+
+
+---
+######## 从 clang-format 导出的 Google 规范的配置 #######
+# Language:        Cpp
+# # BasedOnStyle:  Google
+# AccessModifierOffset: -1
+# AlignAfterOpenBracket: Align
+# AlignConsecutiveMacros: false
+# AlignConsecutiveAssignments: false
+# AlignConsecutiveDeclarations: false
+# AlignEscapedNewlines: Left
+# AlignOperands:   true
+# AlignTrailingComments: true
+# AllowAllArgumentsOnNextLine: true
+# AllowAllConstructorInitializersOnNextLine: true
+# AllowAllParametersOfDeclarationOnNextLine: true
+# AllowShortBlocksOnASingleLine: false
+# AllowShortCaseLabelsOnASingleLine: false
+# AllowShortFunctionsOnASingleLine: All
+# AllowShortLambdasOnASingleLine: All
+# AllowShortIfStatementsOnASingleLine: WithoutElse
+# AllowShortLoopsOnASingleLine: true
+# AlwaysBreakAfterDefinitionReturnType: None
+# AlwaysBreakAfterReturnType: None
+# AlwaysBreakBeforeMultilineStrings: true
+# AlwaysBreakTemplateDeclarations: Yes
+# BinPackArguments: true
+# BinPackParameters: true
+# BraceWrapping:
+#   AfterCaseLabel:  false
+#   AfterClass:      false
+#   AfterControlStatement: false
+#   AfterEnum:       false
+#   AfterFunction:   false
+#   AfterNamespace:  false
+#   AfterObjCDeclaration: false
+#   AfterStruct:     false
+#   AfterUnion:      false
+#   AfterExternBlock: false
+#   BeforeCatch:     false
+#   BeforeElse:      false
+#   IndentBraces:    false
+#   SplitEmptyFunction: true
+#   SplitEmptyRecord: true
+#   SplitEmptyNamespace: true
+# BreakBeforeBinaryOperators: None
+# BreakBeforeBraces: Attach
+# BreakBeforeInheritanceComma: false
+# BreakInheritanceList: BeforeColon
+# BreakBeforeTernaryOperators: true
+# BreakConstructorInitializersBeforeComma: false
+# BreakConstructorInitializers: BeforeColon
+# BreakAfterJavaFieldAnnotations: false
+# BreakStringLiterals: true
+# ColumnLimit:     80
+# CommentPragmas:  '^ IWYU pragma:'
+# CompactNamespaces: false
+# ConstructorInitializerAllOnOneLineOrOnePerLine: true
+# ConstructorInitializerIndentWidth: 4
+# ContinuationIndentWidth: 4
+# Cpp11BracedListStyle: true
+# DerivePointerAlignment: true
+# DisableFormat:   false
+# ExperimentalAutoDetectBinPacking: false
+# FixNamespaceComments: true
+# ForEachMacros:
+#   - foreach
+#   - Q_FOREACH
+#   - BOOST_FOREACH
+# IncludeBlocks:   Regroup
+# IncludeCategories:
+#   - Regex:           '^<ext/.*\.h>'
+#     Priority:        2
+#   - Regex:           '^<.*\.h>'
+#     Priority:        1
+#   - Regex:           '^<.*'
+#     Priority:        2
+#   - Regex:           '.*'
+#     Priority:        3
+# IncludeIsMainRegex: '([-_](test|unittest))?$'
+# IndentCaseLabels: true
+# IndentPPDirectives: None
+# IndentWidth:     2
+# IndentWrappedFunctionNames: false
+# JavaScriptQuotes: Leave
+# JavaScriptWrapImports: true
+# KeepEmptyLinesAtTheStartOfBlocks: false
+# MacroBlockBegin: ''
+# MacroBlockEnd:   ''
+# MaxEmptyLinesToKeep: 1
+# NamespaceIndentation: None
+# ObjCBinPackProtocolList: Never
+# ObjCBlockIndentWidth: 2
+# ObjCSpaceAfterProperty: false
+# ObjCSpaceBeforeProtocolList: true
+# PenaltyBreakAssignment: 2
+# PenaltyBreakBeforeFirstCallParameter: 1
+# PenaltyBreakComment: 300
+# PenaltyBreakFirstLessLess: 120
+# PenaltyBreakString: 1000
+# PenaltyBreakTemplateDeclaration: 10
+# PenaltyExcessCharacter: 1000000
+# PenaltyReturnTypeOnItsOwnLine: 200
+# PointerAlignment: Left
+# RawStringFormats:
+#   - Language:        Cpp
+#     Delimiters:
+#       - cc
+#       - CC
+#       - cpp
+#       - Cpp
+#       - CPP
+#       - 'c++'
+#       - 'C++'
+#     CanonicalDelimiter: ''
+#     BasedOnStyle:    google
+#   - Language:        TextProto
+#     Delimiters:
+#       - pb
+#       - PB
+#       - proto
+#       - PROTO
+#     EnclosingFunctions:
+#       - EqualsProto
+#       - EquivToProto
+#       - PARSE_PARTIAL_TEXT_PROTO
+#       - PARSE_TEST_PROTO
+#       - PARSE_TEXT_PROTO
+#       - ParseTextOrDie
+#       - ParseTextProtoOrDie
+#     CanonicalDelimiter: ''
+#     BasedOnStyle:    google
+# ReflowComments:  true
+# SortIncludes:    true
+# SortUsingDeclarations: true
+# SpaceAfterCStyleCast: false
+# SpaceAfterLogicalNot: false
+# SpaceAfterTemplateKeyword: true
+# SpaceBeforeAssignmentOperators: true
+# SpaceBeforeCpp11BracedList: false
+# SpaceBeforeCtorInitializerColon: true
+# SpaceBeforeInheritanceColon: true
+# SpaceBeforeParens: ControlStatements
+# SpaceBeforeRangeBasedForLoopColon: true
+# SpaceInEmptyParentheses: false
+# SpacesBeforeTrailingComments: 2
+# SpacesInAngles:  false
+# SpacesInContainerLiterals: true
+# SpacesInCStyleCastParentheses: false
+# SpacesInParentheses: false
+# SpacesInSquareBrackets: false
+# Standard:        Auto
+# StatementMacros:
+#   - Q_UNUSED
+#   - QT_REQUIRE_VERSION
+# TabWidth:        8
+# UseTab:          Never
+---
+
