@@ -63,6 +63,7 @@ return {
       { "<leader><space>", false, desc = "禁用 Find Files" },
       -- 让 <leader>/ 交给 which-key 的寄存器组(见下方 which-key spec)
       { "<leader>/", false, desc = "禁用 Grep (Root Dir)" },
+      { "<leader>E", false, desc = "禁用 explorer CWD" },
       {
         "<M-t>",
         function()
@@ -135,6 +136,13 @@ return {
           Snacks.picker.recent()
         end,
         desc = "Recent files",
+      },
+      {
+        "<leader><leader>m",
+        function()
+          Snacks.picker.recent({ filter = { paths = { [vim.fn.stdpath("data")] = true } } })
+        end,
+        desc = "Recent Files With Vim Data",
       },
       {
         "<leader>M",
@@ -275,6 +283,20 @@ return {
           require("snacks_custom").open_focus_close("~")
         end,
         desc = "Open User Home Directory",
+      },
+      {
+        "<leader>Ec", -- 打开 stdpath("config")
+        function()
+          require("snacks_custom").open_focus_close(vim.fn.stdpath("config"))
+        end,
+        desc = "Open Vim Config Directory",
+      },
+      {
+        "<leader>Ed", -- 打开 stdpath("data")
+        function()
+          require("snacks_custom").open_focus_close(vim.fn.stdpath("data"))
+        end,
+        desc = "Open Vim Data Directory",
       },
     },
   },
