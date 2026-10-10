@@ -219,6 +219,66 @@ function M.camera_dirs(filepath)
   return dirs
 end
 
+-- 寄存器列表(与 which-key 内置 registers 插件保持一致)
+local REGISTERS = '*+"-:.%/#=_abcdefghijklmnopqrstuvwxyz0123456789'
+
+local REGISTER_LABELS = {
+  ['"'] = "last deleted, changed, or yanked content",
+  ["0"] = "last yank",
+  ["-"] = "deleted or changed content smaller than one line",
+  ["."] = "last inserted text",
+  ["%"] = "name of the current file",
+  [":"] = "most recent executed command",
+  ["#"] = "alternate buffer",
+  ["="] = "result of an expression",
+  ["+"] = "synchronized with the system clipboard",
+  ["*"] = "synchronized with the selection clipboard",
+  ["_"] = "black hole",
+  ["/"] = "last search pattern",
+}
+
+--- 清洗检索串:仅对寄存器 / (上次搜索) 把 K 写入的 \< \> 单词边界改成正则的边界 \b \b,
+--- 以便把原始文本交给 rg 作为正则使用。
+local function clean_search(key, value)
+  if key == "/" then
+    value = value:gsub("^\\<", "\\b"):gsub("\\>$", "\\b")
+  end
+  return value
+end
+
+--- which-key 的 <leader>/ spec:每个非空寄存器一条,选中后以该寄存器内容
+--- 在当前 git 仓内 grep。
+--- @return wk.Spec
+function M.register_search_spec()
+  local items = {}
+  for i = 1, #REGISTERS do
+    local key = REGISTERS:sub(i, i)
+    local ok, value = pcall(vim.fn.getreg, key, 1)
+    value = ok and type(value) == "string" and value or ""
+    if value ~= "" then
+      local preview = vim.fn.keytrans(vim.split(value, "\n")[1] or value)
+      if #preview > 60 then
+        preview = preview:sub(1, 60) .. "…"
+      end
+      local label = REGISTER_LABELS[key]
+      items[#items + 1] = {
+        key,
+        function()
+          local search = clean_search(key, value)
+          if search ~= "" then
+            local cwd = require("config.util").find_root({ ".git" })
+            vim.schedule(function()
+              Snacks.picker.grep({ search = search, cwd = cwd })
+            end)
+          end
+        end,
+        desc = (label and (label .. ": ") or "") .. preview,
+      }
+    end
+  end
+  return items
+end
+
 function M.pick_async_tasks()
   -- 1. 调用 Vimscript 函数获取任务列表
   local tasks = vim.fn["asynctasks#list"]("")

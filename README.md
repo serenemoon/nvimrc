@@ -36,7 +36,9 @@
 │   │   ├── lazy.lua          # lazy.nvim 配置 & extras 导入
 │   │   ├── autocmds.lua      # 自动命令
 │   │   ├── commands.lua      # :LspLog / :Lua 用户命令
-│   │   └── config-local.lua  # 进入 .repo 时自动生成 .nvim.lua
+│   │   ├── config-local.lua  # 进入 .repo 时自动生成 .nvim.lua
+│   │   ├── auto-copy.lua     # 向上找 .repo/.git，拷贝 .clang-format/.clang-tidy
+│   │   └── util.lua          # 通用辅助 (find_root 等)
 │   ├── plugins/
 │   │   ├── self.lua          # 主插件配置 (gruvbox, treesitter, lsp, mason 等)
 │   │   ├── snacks.lua        # Snacks picker 快捷键 & explorer 同级导航
@@ -46,6 +48,7 @@
 │   │   ├── easy-align.lua    # vim-easy-align (ga)
 │   │   ├── mini.align.lua    # mini.align (默认键位已禁用)
 │   │   ├── vim-fugitive.lua  # Git 集成
+│   │   ├── which-key.lua     # <leader>/ 寄存器检索规格
 │   │   ├── render-markdown.lua
 │   │   ├── config-local.lua  # nvim-config-local
 │   │   └── tree-sitter.lua   # (空 spec, 占位)
@@ -53,6 +56,7 @@
 ├── config-local/             # config-local 的 .nvim.lua 模板 (不随仓库分发)
 │   ├── .repo.nvim.lua        # 仓内 clangd 替换逻辑
 │   └── .proto.nvim.lua
+├── custom/                   # 分发到工程根的模板: .clang-format / .clang-tidy
 ├── stylua.toml
 └── LICENSE
 ```
@@ -130,6 +134,7 @@
 
 | 快捷键 | 功能 |
 |--------|------|
+| `<leader>/` | which-key 弹出寄存器列表，选中后以该寄存器内容在当前 git 仓库内 grep（`/` 寄存器会先去掉 `\<` `\>`） |
 | `<leader>R` | 在当前 git 仓库内 grep 光标下 symbol |
 | `<leader>r` | 在当前 git 仓库内 live grep |
 | `<leader>l` | 在当前 buffer 内按行 grep |
@@ -199,6 +204,19 @@
 
 模板 (`.repo.nvim.lua`) 的作用：当仓内存在自带的 `clangd` 时，复用 LazyVim 既有的 clangd 启动参数，仅把可执行文件替换为仓内版本（避免“改完又被 lspconfig 覆盖”）。通过在 `BufReadPre/BufNewFile` 与 `LspAttach` 阶段重新套用并重启非目标客户端的 clangd 来保证最终生效。
 
+## clang 配置分发 (auto-copy)
+
+`lua/config/auto-copy.lua` 在 `VimEnter` 时按 `COPY_RULES` 分发模板：每个待分发文件映射到一组「根目录标记」，从当前路径向上逐级查找并取第一个命中该组标记的目录。外层列表按顺序尝试，内层要求该目录同时含有其中全部标记；当前两组均为 `{ { ".repo" }, { ".git", "CMakeLists.txt" } }`，即优先匹配含 `.repo` 的目录，否则匹配同时含 `.git` 与 `CMakeLists.txt` 的目录。若找到工程根目录且其中缺少对应文件，则把模板 `custom/<name>` 拷贝过去（已存在的文件不覆盖）。
+
+## 通用辅助 (util)
+
+`lua/config/util.lua` 提供：
+
+- `find_root({ marker1, marker2, ..., dfs? })` — 从当前文件向上查找根目录；找不到时回退到当前文件所在目录，无文件时回退到进程 cwd
+  - 数组部分为一组根目录标记，按顺序尝试
+  - `dfs = true`：逐个 marker 依次查找（先命中的优先），即 `{ ".repo", ".git", dfs = true }` 会先找 `.repo`、再找 `.git`
+  - `dfs` 缺省/`false`：直接交给 `vim.fs.root` 一次查找（多标记中取最近向上命中的那个）
+
 ## `.repo` 仓库辅助 (snacks_custom)
 
 `lua/snacks_custom.lua` 提供以下辅助函数：
@@ -212,6 +230,8 @@
   仓库列表优先在 `.repo` 根目录执行 `repo list -p -f` 获取；`repo` 不存在或执行失败时回退为扫描含 `.git` 的目录（依次用 `fd`、`find`、`vim.fs.find`）。结果缓存在 `<repo根>/.repo_gits`，下次存在该文件时直接读取；传 `refresh = true` 可强制重新获取。
 
 - `pick_git_repos(refresh?)` — 用 snacks picker 列出上述仓库，选中后用 explorer 打开；`<M-r>` 读缓存，`<M-R>` 强制刷新
+
+- `register_search_spec()` — 生成 which-key 的 `<leader>/` spec：每个非空寄存器一条（描述为「寄存器说明: 内容首行」），选中后以该寄存器内容作为检索串，在当前文件所在 git 仓（回退到文件所在目录）内调用 `Snacks.picker.grep`；`/` 寄存器会先去掉 `K` 写入的 `\<`/`\>` 单词边界
 
 - `pick_async_tasks()` — 调用 `asynctasks#list` 获取任务，用 snacks picker 列出并执行；绑定在 `<M-t>`
 

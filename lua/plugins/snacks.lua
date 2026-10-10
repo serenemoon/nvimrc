@@ -61,6 +61,8 @@ return {
     },
     keys = {
       { "<leader><space>", false, desc = "禁用 Find Files" },
+      -- 让 <leader>/ 交给 which-key 的寄存器组(见下方 which-key spec)
+      { "<leader>/", false, desc = "禁用 Grep (Root Dir)" },
       {
         "<M-t>",
         function()
@@ -76,11 +78,9 @@ return {
             vim.notify("No word under cursor", vim.log.levels.WARN)
             return
           end
+
           -- resolve the git repo root of the current file
-          local file = vim.api.nvim_buf_get_name(0)
-          local dir = file ~= "" and vim.fn.fnamemodify(file, ":h") or vim.fn.getcwd()
-          local root = vim.fs.find(".git", { upward = true, path = dir, type = "directory" })[1]
-          local cwd = root and vim.fn.fnamemodify(root, ":h") or vim.fn.getcwd()
+          local cwd = require("config.util").find_root({ ".git" })
           Snacks.picker.grep({ search = word, cwd = cwd })
         end,
         desc = "Search word under cursor (root grep)",
@@ -90,10 +90,7 @@ return {
         "<leader>r",
         function()
           -- resolve the git repo root of the current file
-          local file = vim.api.nvim_buf_get_name(0)
-          local dir = file ~= "" and vim.fn.fnamemodify(file, ":h") or vim.fn.getcwd()
-          local root = vim.fs.find(".git", { upward = true, path = dir, type = "directory" })[1]
-          local cwd = root and vim.fn.fnamemodify(root, ":h") or vim.fn.getcwd()
+          local cwd = require("config.util").find_root({ ".git" })
           Snacks.picker.grep({ cwd = cwd, live = true })
         end,
         desc = "Search word (repo grep)",
@@ -142,14 +139,14 @@ return {
       {
         "<leader>M",
         function()
-          local repo = vim.fs.root(0, ".repo")
+          local repo = require("config.util").find_root({ ".repo", ".git", dfs = true })
           if not repo then
-            vim.notify("No .repo directory found", vim.log.levels.WARN)
+            vim.notify("No .repo/.git directory found", vim.log.levels.WARN)
             return
           end
           Snacks.picker.recent({
             filter = { cwd = repo },
-            title = "Recent files in repo",
+            title = "Recent files in repo/git",
           })
         end,
         desc = "Recent files (repo only)",
