@@ -48,6 +48,7 @@ return {
                   ["|"] = "edit_vsplit",
                   ["-"] = "edit_split",
                   ["u"] = "explorer_up",
+                  ["o"] = "confirm",
                   ["<c-r>"] = "explorer_update",
                   -- 同一目录内上/下移动,跳过已展开目录的子节点
                   ["<C-j>"] = { "explorer_sibling_next", mode = { "n" } },

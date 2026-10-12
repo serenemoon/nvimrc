@@ -7,6 +7,20 @@ return {
         backend = "zellij",
         enabled = false,
       },
+      tools = {
+        codeagent = {
+          cmd = { "codeagent", "--dangerously-skip-permissions" },
+          -- Optional: custom keymaps for this tool
+          keys = {
+            submit = {
+              "<c-s>",
+              function(t)
+                t:send("\n")
+              end,
+            },
+          },
+        },
+      },
     },
     nes = { enabled = false },
   },
@@ -80,6 +94,13 @@ return {
         require("sidekick.cli").toggle({ name = "opencode", focus = true })
       end,
       desc = "Sidekick Toggle OpenCode",
+    },
+    {
+      "<leader>ac",
+      function()
+        require("sidekick.cli").toggle({ name = "codeagent", focus = true })
+      end,
+      desc = "Sidekick Toggle CodeAgent",
     },
   },
 }

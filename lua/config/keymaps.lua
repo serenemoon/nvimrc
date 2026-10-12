@@ -57,6 +57,7 @@ vim.keymap.set({ "t" }, "<A-l>", "<C-\\><C-n><C-W><C-L>", {})
 vim.keymap.set({ "n", "v", "i" }, "<A-w>", ":w<CR>", {})
 vim.keymap.set({ "n", "v" }, "<A-q>", ":q<CR>", {})
 vim.keymap.set({ "n", "v" }, "<A-Q>", ":qall<CR>", {})
+vim.keymap.set({ "n", "v" }, ",qa", ":qall<CR>", {})
 vim.keymap.set({ "t" }, "<A-q>", "exit<CR>", {})
 
 -- terminal

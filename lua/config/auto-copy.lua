@@ -1,12 +1,16 @@
--- 打开 Neovim 时，从当前路径向上查找 .repo 根目录；找不到则回退查找 .git。
--- 若找到，且该根目录下缺少这些文件，则从 nvim 配置目录的 custom/ 拷贝过去。
+-- 打开 Neovim 时，从当前路径向上查找工程根目录，把 nvim 配置目录 custom/ 下的
+-- 模板分发过去（clang 配置、.repo 的 .nvim.lua 等）。
 local M = {}
 
--- 每个要分发的文件对应一组「根目录标记」：外层列表依次尝试，取第一个命中的目录；
--- 内层列表要求该目录同时含有其中所有 marker。键为相对 custom/ 的文件名。
+-- 分发规则：
+--   src     相对 custom/ 的模板文件名
+--   dst     目标文件名(缺省与 src 同名)
+--   markers 该文件需要的「根目录标记」：外层列表依次尝试，取第一个命中的目录；
+--           内层列表要求该目录同时含有其中所有 marker。
 local COPY_RULES = {
-  [".clang-format"] = { { ".repo" }, { ".git", "CMakeLists.txt" } },
-  [".clang-tidy"] = { { ".repo" }, { ".git", "CMakeLists.txt" } },
+  { src = ".clang-format", markers = { { ".repo" }, { ".git", "CMakeLists.txt" } } },
+  { src = ".clang-tidy", markers = { { ".repo" }, { ".git", "CMakeLists.txt" } } },
+  { src = ".repo.nvim.lua", dst = ".nvim.lua", markers = { { ".repo" } } },
 }
 
 local custom_dir = vim.fs.joinpath(vim.fn.stdpath("config"), "custom")
@@ -39,26 +43,22 @@ local function find_root(groups)
 end
 
 function M.install()
-  local names = vim.tbl_keys(COPY_RULES)
-  table.sort(names)
-  for _, name in ipairs(names) do
-    local root = find_root(COPY_RULES[name])
+  for _, rule in ipairs(COPY_RULES) do
+    local root = find_root(rule.markers)
     if root then
-      local src = vim.fs.joinpath(custom_dir, name)
-      local dst = vim.fs.joinpath(root, name)
-      if vim.uv.fs_stat(dst) then
-        -- 目标已存在，跳过，不覆盖用户自己的配置
-        goto continue
-      end
-      if vim.fn.filereadable(src) ~= 1 then
+      local src = vim.fs.joinpath(custom_dir, rule.src)
+      local dst = vim.fs.joinpath(root, rule.dst or rule.src)
+      local src_stat = vim.uv.fs_stat(src)
+      local dst_stat = vim.uv.fs_stat(dst)
+
+      if not src_stat then
         vim.notify("缺少模板文件: " .. src, vim.log.levels.WARN)
-        goto continue
-      end
-      if vim.uv.fs_copyfile(src, dst) then
-        vim.notify("已生成 " .. dst, vim.log.levels.INFO)
+      elseif dst_stat and dst_stat.size == src_stat.size then
+        -- 目标已存在且与模板大小一致，视为已分发，跳过
+      elseif vim.uv.fs_copyfile(src, dst) then
+        vim.notify((dst_stat and "已更新 " or "已生成 ") .. dst, vim.log.levels.INFO)
       end
     end
-    ::continue::
   end
 end
 

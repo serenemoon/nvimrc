@@ -25,7 +25,7 @@
 ## 目录结构
 
 ```
-├── init.lua                  # 入口 (config-local -> lazy -> commands)
+├── init.lua                  # 入口 (auto-copy -> lazy -> commands)
 ├── setup                     # 安装脚本: 链接 ~/.config/nvim 与 tree-sitter
 ├── async_tasks.ini           # asynctasks.vim 的任务定义 (file-run / file-build)
 ├── lazyvim.json              # LazyVim extras 声明
@@ -36,8 +36,7 @@
 │   │   ├── lazy.lua          # lazy.nvim 配置 & extras 导入
 │   │   ├── autocmds.lua      # 自动命令
 │   │   ├── commands.lua      # :LspLog / :Lua 用户命令
-│   │   ├── config-local.lua  # 进入 .repo 时自动生成 .nvim.lua
-│   │   ├── auto-copy.lua     # 向上找 .repo/.git，拷贝 .clang-format/.clang-tidy
+│   │   ├── auto-copy.lua     # 按 COPY_RULES 把 custom/ 模板分发到工程根
 │   │   └── util.lua          # 通用辅助 (find_root 等)
 │   ├── plugins/
 │   │   ├── self.lua          # 主插件配置 (gruvbox, treesitter, lsp, mason 等)
@@ -53,10 +52,11 @@
 │   │   ├── config-local.lua  # nvim-config-local
 │   │   └── tree-sitter.lua   # (空 spec, 占位)
 │   └── snacks_custom.lua     # .repo / camera HAL 目录 & 异步任务辅助函数
-├── config-local/             # config-local 的 .nvim.lua 模板 (不随仓库分发)
-│   ├── .repo.nvim.lua        # 仓内 clangd 替换逻辑
+├── custom/                   # 分发到工程根的模板 (见 auto-copy)
+│   ├── .clang-format         # -> 工程根 .clang-format
+│   ├── .clang-tidy           # -> 工程根 .clang-tidy
+│   ├── .repo.nvim.lua        # -> .repo 根 .nvim.lua (仓内 clangd 替换逻辑)
 │   └── .proto.nvim.lua
-├── custom/                   # 分发到工程根的模板: .clang-format / .clang-tidy
 ├── stylua.toml
 └── LICENSE
 ```
@@ -200,13 +200,21 @@
 
 ## `.repo` / clangd 支持
 
-`lua/config/config-local.lua` 在 `VimEnter` 时从当前路径向上查找 `.repo` 根目录；若根目录下没有 `.nvim.lua`，则把模板 `config-local/.repo.nvim.lua` 复制过去。
+`.repo` 根目录下的 `.nvim.lua` 由 auto-copy 从模板 `custom/.repo.nvim.lua` 生成（见下）。
 
 模板 (`.repo.nvim.lua`) 的作用：当仓内存在自带的 `clangd` 时，复用 LazyVim 既有的 clangd 启动参数，仅把可执行文件替换为仓内版本（避免“改完又被 lspconfig 覆盖”）。通过在 `BufReadPre/BufNewFile` 与 `LspAttach` 阶段重新套用并重启非目标客户端的 clangd 来保证最终生效。
 
-## clang 配置分发 (auto-copy)
+## 配置分发 (auto-copy)
 
-`lua/config/auto-copy.lua` 在 `VimEnter` 时按 `COPY_RULES` 分发模板：每个待分发文件映射到一组「根目录标记」，从当前路径向上逐级查找并取第一个命中该组标记的目录。外层列表按顺序尝试，内层要求该目录同时含有其中全部标记；当前两组均为 `{ { ".repo" }, { ".git", "CMakeLists.txt" } }`，即优先匹配含 `.repo` 的目录，否则匹配同时含 `.git` 与 `CMakeLists.txt` 的目录。若找到工程根目录且其中缺少对应文件，则把模板 `custom/<name>` 拷贝过去（已存在的文件不覆盖）。
+`lua/config/auto-copy.lua` 在 `VimEnter` 时按 `COPY_RULES` 分发 `custom/` 下的模板到工程根目录。每条规则由 `src`（相对 custom/ 的模板名）、可选 `dst`（目标名，缺省同 `src`）与 `markers`（根目录标记）组成：
+
+| src | dst | markers |
+|-----|-----|---------|
+| `.clang-format` | `.clang-format` | `{ { ".repo" }, { ".git", "CMakeLists.txt" } }` |
+| `.clang-tidy` | `.clang-tidy` | `{ { ".repo" }, { ".git", "CMakeLists.txt" } }` |
+| `.repo.nvim.lua` | `.nvim.lua` | `{ { ".repo" } }` |
+
+`markers` 从当前路径向上逐级查找，取第一个命中该规则的目录：外层列表按顺序尝试，内层要求该目录同时含有其中全部标记。分发时按**文件大小**判断——目标不存在、或与模板大小不一致时拷贝覆盖（内容同步后大小一致则跳过）。
 
 ## 通用辅助 (util)
 

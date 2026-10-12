@@ -1,4 +1,4 @@
--- 本脚本所在目录作为 clang_root；当 clang_root/.repo 存在时，
+-- 本脚本所在目录作为 repo_root；当 repo_root/.repo 存在时，
 -- 复用现有 clangd 的启动命令，并把可执行文件替换为仓内自带的 clangd。
 --
 -- 时机说明：LazyVim 的 nvim-lspconfig 以 BufReadPre/BufNewFile 懒加载，其 config
@@ -24,7 +24,7 @@ local function script_dir()
   return vim.fn.getcwd()
 end
 
-local clang_root = script_dir()
+local repo_root = script_dir()
 
 -- 候选 clangd 可执行文件（相对仓根），按顺序取第一个存在的；都不存在则为 nil。
 local CLANGD_CANDIDATES = {
@@ -34,7 +34,7 @@ local CLANGD_CANDIDATES = {
 
 local clangd_exe
 for _, rel in ipairs(CLANGD_CANDIDATES) do
-  local exe = vim.fs.joinpath(clang_root, rel)
+  local exe = vim.fs.joinpath(repo_root, rel)
   if vim.fn.executable(exe) == 1 then
     clangd_exe = exe
     break
@@ -43,9 +43,68 @@ end
 
 local function is_repo()
   return clangd_exe ~= nil
-    and vim.fn.isdirectory(clang_root) == 1
-    and vim.fn.isdirectory(vim.fs.joinpath(clang_root, ".repo")) == 1
+    and vim.fn.isdirectory(repo_root) == 1
+    and vim.fn.isdirectory(vim.fs.joinpath(repo_root, ".repo")) == 1
 end
+
+-- 读入清单文件并赋值给全局变量 vim.g.odm_hal_repositories。
+local function load_odm_paths(out)
+  local paths = {}
+  if vim.fn.filereadable(out) == 1 then
+    for _, line in ipairs(vim.fn.readfile(out)) do
+      line = vim.trim(line)
+      if line ~= "" then
+        paths[#paths + 1] = line
+      end
+    end
+  end
+  vim.g.odm_hal_repositories = paths
+end
+
+-- 以脚本所在目录为根，在 vendor/hisi/odm 下递归查找所有 hal_repository 目录，
+-- 把相对根目录的路径写入 <root>/.cache/odm_paths.txt；该文件已存在则跳过扫描。
+-- 首次写入或文件已存在时都会把清单读入 vim.g.odm_hal_repositories。
+local function cache_odm_paths()
+  local out = vim.fs.joinpath(repo_root, ".cache/odm_paths.txt")
+  if vim.fn.filereadable(out) == 1 then
+    load_odm_paths(out)
+    return
+  end
+
+  local base = vim.fs.joinpath(repo_root, "vendor/hisi/odm")
+  if vim.fn.isdirectory(base) ~= 1 then
+    vim.g.odm_hal_repositories = {}
+    return
+  end
+
+  local dirs
+  if vim.fn.executable("fd") == 1 then
+    dirs = vim.fn.systemlist({ "fd", "-u", "-t", "d", "^hal_repository$", base })
+  elseif vim.fn.executable("find") == 1 then
+    dirs = vim.fn.systemlist({ "find", base, "-type", "d", "-name", "hal_repository" })
+  else
+    dirs = vim.fs.find(function(name)
+      return name == "hal_repository"
+    end, { path = base, type = "directory", limit = math.huge })
+  end
+
+  local seen, rels = {}, {}
+  for _, dir in ipairs(dirs) do
+    dir = vim.fs.normalize(dir)
+    local rel = dir:sub(#repo_root + 2)
+    if rel ~= "" and not seen[rel] then
+      seen[rel] = true
+      rels[#rels + 1] = rel
+    end
+  end
+  table.sort(rels)
+
+  vim.fn.mkdir(vim.fs.dirname(out), "p")
+  vim.fn.writefile(rels, out)
+  load_odm_paths(out)
+end
+
+cache_odm_paths()
 
 -- 抽取现有 clangd cmd，仅替换第 1 个元素(可执行文件)，其余参数原样保留。
 -- 返回是否发生了改变。

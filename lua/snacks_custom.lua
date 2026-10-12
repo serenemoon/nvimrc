@@ -162,6 +162,7 @@ local APKERNEL = "vendor/hisi/ap/kernel"
 local ISPINC = "vendor/hisi/include/isp"
 local ISPFW = "vendor/hisi/isp"
 local HISIODM = "vendor/hisi/odm"
+local HISIODM_HAL = "vim.g.odm_hal_repositories"
 local HISIDTS = "device/hisi/customize"
 local CAMINTF = "drivers/interface/camera"
 local CAMFWK = "foundation/multimedia/camera_framework"
@@ -170,11 +171,43 @@ local IMGEFFECT = "foundation/multimedia/image_effect"
 local HELPSFWK = "vendor/huawei/base/hiviewdfx/helps_fwk"
 local HWJS = "vendor/huawei/interface/hmscore_sdk_js"
 
+--- 判断 rel 是否位于相对目录 prefix 之下(含自身)。
+local function is_under(rel, prefix)
+  return rel == prefix or rel:sub(1, #prefix + 1) == prefix .. "/"
+end
+
+--- 把 dir2dirs 组内的一个条目展开为一组相对仓根的路径。
+--- 普通条目即为一个相对目录;HISIODM_HAL 不是目录而是 vim 全局变量
+--- vim.g.odm_hal_repositories——字符串时取该值，列表/映射表时取每个
+--- 元素(仅接受字符串),其余情况返回空。
+--- @param entry string
+--- @return string[]
+local function entry_relpaths(entry)
+  if entry ~= HISIODM_HAL then
+    return { entry }
+  end
+  local val = vim.g.odm_hal_repositories
+  if type(val) == "string" then
+    return val ~= "" and { val } or {}
+  elseif type(val) == "table" then
+    local out = {}
+    for _, rel in pairs(val) do
+      if type(rel) == "string" and rel ~= "" then
+        out[#out + 1] = rel
+      end
+    end
+    return out
+  end
+  return {}
+end
+
 --- Build the list of camera HAL search directories for the current file.
 --- The file path is used to locate the enclosing .repo root, then the file's
 --- path relative to that root is prefix-matched against every entry in each
 --- group of dir2dirs. Every group with at least one matching entry contributes
 --- its whole directory list; the result is deduplicated.
+--- HISIODM_HAL 特殊处理:它不是目录,而是全局变量 vim.g.odm_hal_repositories,
+--- 展开为其中每个相对路径后同样参与匹配与贡献。
 --- @param filepath string current file path
 --- @return string[] dirs list of absolute paths (existing only, deduplicated)
 function M.camera_dirs(filepath)
@@ -189,7 +222,7 @@ function M.camera_dirs(filepath)
   end
 
   local dir2dirs = {
-    { CAMHAL, CAMINC, CAMPROD, UAPI, ISPINC, IPSHAL, IPSINC },
+    { CAMHAL, CAMINC, CAMPROD, UAPI, ISPINC, IPSHAL, IPSINC, HISIODM_HAL },
     { CAMHAL, CAMINC, CAMPROD, IPSHAL, IPSINC },
     { CAMHAL, CAMINC, CAMPROD, CAMINTF },
     { CAMFWK, IMGFWK, IMGEFFECT, CAMINTF, CAMHAL, CAMINC, CAMPROD },
@@ -198,20 +231,31 @@ function M.camera_dirs(filepath)
 
   local dirs = {}
   local seen = {}
+  local function add(sub)
+    local path = repo .. "/" .. sub
+    if not seen[path] and vim.fn.isdirectory(path) == 1 then
+      seen[path] = true
+      table.insert(dirs, path)
+    end
+  end
+
   for _, group in ipairs(dir2dirs) do
     local hit = false
-    for _, prefix in ipairs(group) do
-      if rel == prefix or rel:sub(1, #prefix + 1) == prefix .. "/" then
-        hit = true
+    for _, entry in ipairs(group) do
+      for _, prefix in ipairs(entry_relpaths(entry)) do
+        if is_under(rel, prefix) then
+          hit = true
+          break
+        end
+      end
+      if hit then
         break
       end
     end
     if hit then
-      for _, sub in ipairs(group) do
-        local path = repo .. "/" .. sub
-        if not seen[path] and vim.fn.isdirectory(path) == 1 then
-          seen[path] = true
-          table.insert(dirs, path)
+      for _, entry in ipairs(group) do
+        for _, sub in ipairs(entry_relpaths(entry)) do
+          add(sub)
         end
       end
     end
