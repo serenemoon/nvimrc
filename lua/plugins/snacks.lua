@@ -32,6 +32,10 @@ return {
         layout = {
           preview = false,
         },
+        toggles = {
+          -- {flags} 标题指示器:文件名匹配开启时显示该标记
+          filename_only = { icon = "F", value = true },
+        },
         actions = {
           explorer_sibling_next = function(picker)
             move_sibling(picker, 1)
@@ -39,6 +43,19 @@ return {
           explorer_sibling_prev = function(picker)
             move_sibling(picker, -1)
           end,
+          --- <C-f>:仅在文件名(而非整个路径)上做 fuzzy 匹配;再按一次恢复。
+          --- 动作名刻意不叫 `toggle_filename_only`——那正是 toggles 自动生成的
+          --- 通用动作名,会被其覆盖,从而丢失 matcher 补丁与显示切换。
+          filename_only = function(picker)
+            require("snacks_custom").toggle_filename_only(picker)
+          end,
+        },
+        win = {
+          input = {
+            keys = {
+              ["<C-f>"] = { "filename_only", mode = { "i", "n" } },
+            },
+          },
         },
         sources = {
           explorer = {
@@ -200,6 +217,29 @@ return {
           vim.defer_fn(vim.cmd.stopinsert, 50)
         end,
         desc = "Grep camera HAL dirs (word under cursor)",
+        mode = { "n", "x" },
+      },
+      {
+        "gF",
+        function()
+          local repo = vim.fs.root(0, ".repo")
+          if not repo then
+            vim.notify("No .repo directory found", vim.log.levels.WARN)
+            return
+          end
+          local name = vim.fn.fnamemodify(vim.fn.expand("<cfile>"), ":t")
+          if name == "" then
+            vim.notify("No file name under cursor", vim.log.levels.WARN)
+            return
+          end
+          Snacks.picker.files({
+            search = name,
+            dirs = require("snacks_custom").camera_dirs(vim.api.nvim_buf_get_name(0)),
+            live = true,
+            title = "Camera HAL Find (filename): " .. name,
+          })
+        end,
+        desc = "Find cfile name in camera HAL dirs",
         mode = { "n", "x" },
       },
       {

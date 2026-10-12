@@ -39,6 +39,10 @@ local function reload_current_script()
   end
 end
 
+-- edit shortcut
+vim.keymap.set("n", "<M-e>", "A", { desc = "跳到行尾进入insert" })
+vim.keymap.set("i", "<M-e>", "<ESC>A", { desc = "跳到行尾进入insert" })
+
 -- open / edit script dirs
 vim.keymap.set("n", ",ss", reload_current_script, { desc = "重新加载当前脚本" })
 vim.keymap.set("n", ",ee", ":e " .. vim.fn.stdpath("config") .. "<CR>", {})

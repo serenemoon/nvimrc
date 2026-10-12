@@ -143,6 +143,7 @@
 | `<leader>M` | 最近打开的文件 (仅当前 `.repo` 仓库) |
 | `<leader><leader>r` | 在 camera HAL 目录下 live grep |
 | `<leader><leader>R` | 在 camera HAL 目录下 grep 光标下 symbol |
+| `gF` | 以光标下文件（`expand('<cfile>')`）的文件名为初始输入，在 camera HAL 目录下查找对应文件（`files`，可继续编辑并回车打开） |
 | `,fF` | 查找 camera HAL 目录下的文件 |
 | `,ff` | 查找当前 git 仓库下的文件 |
 | `<leader><leader>l` | 打开 Lazy |
@@ -156,6 +157,8 @@
 | `<F4>` | 用 explorer 打开当前 `.repo` 根目录 |
 | `<F16>` (S-F4) | 用 explorer 打开用户主目录 |
 | `<leader><space>` | (禁用 LazyVim 默认的 Find Files) |
+
+> 在任意 picker 的搜索框内按 `<C-f>` 可切换「仅文件名匹配」：开启后 fuzzy 匹配只针对文件名(basename)，而不是完整路径；标题处显示 `F` 指示器，再按一次恢复。由 `lua/plugins/snacks.lua` 的 `filename_only` 动作调用 `snacks_custom.toggle_filename_only` 实现。
 
 ### Snacks Explorer
 
@@ -244,6 +247,8 @@
 - `pick_async_tasks()` — 调用 `asynctasks#list` 获取任务，用 snacks picker 列出并执行；绑定在 `<M-t>`
 
 - `open_focus_close(dir)` — explorer 的打开/聚焦/关闭逻辑，供目录类快捷键使用
+
+- `toggle_filename_only(picker)` — 切换 picker 的「仅文件名匹配」，但**显示仍保留完整路径**。通过一次性给 `snacks.picker.core.matcher` 打补丁实现：`_match` 在 `filename_only` 开启时用一个 `file = basename` 的伪 item 走正常的 `field = "file"` 匹配，原 item(及其路径显示)不变；`positions()` 把命中位置按 basename 在完整路径中的偏移右移，使高亮正好落在路径末尾的文件名上。同时同步 `picker.list.matcher`、置 `formatters.file.filename_only = false`(保持显示路径)。绑定在 picker 搜索框的 `<C-f>`
 
 搜索的目录包括：
 

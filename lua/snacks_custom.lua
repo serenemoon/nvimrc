@@ -323,6 +323,87 @@ function M.register_search_spec()
   return items
 end
 
+--- Patches the snacks picker matcher (once) so that, while a matcher's
+--- `filename_only` flag is set, fuzzy matching targets the item's file
+--- **basename** while the list keeps rendering the full path. The basename is
+--- exposed to the match as the `file` field (`mods.field = "file"`) of a small
+--- pseudo-item that still carries the real `item.file`, so the match runs on
+--- the basename without ever touching the item itself. The basename hits are
+--- shifted back onto the path's basename segment by `positions()`.
+local filename_only_installed = false
+local function install_filename_only()
+  if filename_only_installed then
+    return
+  end
+  filename_only_installed = true
+
+  local matcher = require("snacks.picker.core.matcher")
+  local match, positions = matcher._match, matcher.positions
+
+  --- basename of `path` (falling back to `item.file` when `path` is empty).
+  --- @param item snacks.picker.Item
+  --- @param path string
+  --- @return string
+  local function basename_of(item, path)
+    path = (path ~= "" and path) or item.file or ""
+    return vim.fn.fnamemodify(path, ":t")
+  end
+
+  function matcher:_match(item, mods)
+    -- Explicit `field:` / `file:line` patterns and regex mode keep their target.
+    if self.filename_only and item.file and not mods.regex and not mods.field then
+      -- Match against a pseudo item whose `file` (the field the match targets)
+      -- is the basename; the real item — and thus the rendered full path — is
+      -- left untouched. The basename is a suffix of `path`, so `positions()`
+      -- shifts the hits onto it. All four return values are kept: `positions()`
+      -- feeds the last one (str) into `fuzzy_positions`.
+      local base = basename_of(item, (Snacks.picker.util.path(item) or item.file):gsub("\\", "/"))
+      local pseudo = setmetatable({ idx = item.idx, score = 0, file = base }, { __index = item })
+      return match(self, pseudo, setmetatable({ field = "file" }, { __index = mods }))
+    end
+    return match(self, item, mods)
+  end
+
+  function matcher:positions(item)
+    local ret = positions(self, item)
+    -- `_match` matched the basename, so the hits come back in basename
+    -- coordinates, while the highlight pass locates them inside `item.text` —
+    -- the *rendered* line (icon/prefix + full path). Find where the basename
+    -- sits in that line and shift the hits there.
+    if self.filename_only and type(ret.text) == "table" then
+      local base = basename_of(item, (Snacks.picker.util.path(item) or item.file or ""):gsub("\\", "/"))
+      if base ~= "" then
+        local start = (item.text ~= "" and item.text or item.file or ""):find(base, 1, true)
+        if start then
+          start = start - 1
+          for i, pos in ipairs(ret.text) do
+            ret.text[i] = pos + start
+          end
+        end
+      end
+    end
+    return ret
+  end
+end
+
+--- snacks action: toggle "match file name only" on the current picker.
+--- While enabled, fuzzy matching targets the basename while the list keeps
+--- showing the full path; `<C-f>` is bound to this by lua/plugins/snacks.lua.
+--- @param picker snacks.Picker
+function M.toggle_filename_only(picker)
+  install_filename_only()
+  local on = not picker.matcher.filename_only
+  picker.matcher.filename_only = on
+  -- `list` builds its own matcher for highlight positions; keep it in sync so
+  -- basename hits get highlighted.
+  picker.list.matcher.filename_only = on
+  picker.opts.filename_only = on -- drives the `{flags}` title indicator
+  -- keep rendering the full path even while matching only the basename
+  picker.opts.formatters.file.filename_only = false
+  picker.list:set_target()
+  picker:find()
+end
+
 function M.pick_async_tasks()
   -- 1. 调用 Vimscript 函数获取任务列表
   local tasks = vim.fn["asynctasks#list"]("")
