@@ -245,12 +245,8 @@ return {
       {
         ",fF",
         function()
-          local repo = vim.fs.root(0, ".repo")
-          if not repo then
-            vim.notify("No .repo directory found", vim.log.levels.WARN)
-            return
-          end
-          local dirs = require("snacks_custom").camera_dirs(vim.api.nvim_buf_get_name(0))
+          local dir = require("config.util").find_root({ ".git" })
+          local dirs = require("snacks_custom").camera_dirs(dir)
           Snacks.picker.files({ dirs = dirs })
         end,
         desc = "Find files in camera HAL dirs",
@@ -258,7 +254,7 @@ return {
       {
         ",ff",
         function()
-          local dir = vim.fs.root(0, ".git") or vim.fn.getcwd()
+          local dir = require("config.util").find_root({ ".git" })
           Snacks.picker.files({ dirs = { dir } })
         end,
         desc = "Find files in git dir",

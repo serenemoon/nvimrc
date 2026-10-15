@@ -10,3 +10,4 @@ data
 
 # codegraph index cache
 .codegraph/
+.cac
