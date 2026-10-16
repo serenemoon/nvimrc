@@ -34,4 +34,8 @@ function M.find_root(opts)
   return vim.fs.root(0, markers) or fallback
 end
 
+function M.is_win()
+  return vim.fn.has("win32") or vim.fn.has("win64")
+end
+
 return M
