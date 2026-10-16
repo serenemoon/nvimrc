@@ -24,6 +24,31 @@ local function move_sibling(picker, delta)
   end
 end
 
+-- 直接跳到当前节点所在的**同级节点组**的边界:last=true 取组内最后一个
+-- 同级节点,last=false 取第一个。同级判定与 move_sibling 相同(parent 引用
+-- 相等);夹在组内的目录子项(其 parent 指向被展开的目录)不会被匹配。
+local function move_sibling_edge(picker, last)
+  local list = picker.list
+  local item = list:get(list.cursor)
+  if not item then
+    return
+  end
+  local parent = item.parent
+  local target
+  for idx = 1, list:count() do
+    local other = list:get(idx)
+    if other and other.parent == parent then
+      target = idx
+      if not last then
+        break
+      end
+    end
+  end
+  if target then
+    list:view(target)
+  end
+end
+
 return {
   {
     "folke/snacks.nvim",
@@ -43,6 +68,13 @@ return {
           explorer_sibling_prev = function(picker)
             move_sibling(picker, -1)
           end,
+          -- 跳到当前同级节点组的最后一个/第一个节点
+          explorer_sibling_last = function(picker)
+            move_sibling_edge(picker, true)
+          end,
+          explorer_sibling_first = function(picker)
+            move_sibling_edge(picker, false)
+          end,
           --- <C-f>:仅在文件名(而非整个路径)上做 fuzzy 匹配;再按一次恢复。
           --- 动作名刻意不叫 `toggle_filename_only`——那正是 toggles 自动生成的
           --- 通用动作名,会被其覆盖,从而丢失 matcher 补丁与显示切换。
@@ -54,6 +86,7 @@ return {
           input = {
             keys = {
               ["<C-f>"] = { "filename_only", mode = { "i", "n" } },
+              ["<Esc>"] = { "close", mode = { "n", "i" } },
             },
           },
         },
@@ -70,6 +103,9 @@ return {
                   -- 同一目录内上/下移动,跳过已展开目录的子节点
                   ["<C-j>"] = { "explorer_sibling_next", mode = { "n" } },
                   ["<C-k>"] = { "explorer_sibling_prev", mode = { "n" } },
+                  -- 直接跳到同一目录内的最后一个/第一个同级节点
+                  ["J"] = { "explorer_sibling_last", mode = { "n" } },
+                  ["K"] = { "explorer_sibling_first", mode = { "n" } },
                 },
               },
             },
