@@ -34,6 +34,19 @@ function M.find_root(opts)
   return vim.fs.root(0, markers) or fallback
 end
 
+--- 判断给定 buffer 或文件是否在 repo 目录下。
+--- repo 目录指:向上查找到的第一个包含 `.repo` 的目录,且该目录本身
+--- 以及其中的 `.repo` 都是真实目录。
+--- @param target integer|string buffer 编号,或文件路径
+--- @return boolean
+function M.is_file_in_repo(target)
+  local root = vim.fs.root(target, ".repo")
+  if not root then
+    return false
+  end
+  return vim.fn.isdirectory(root) == 1 and vim.fn.isdirectory(vim.fs.joinpath(root, ".repo")) == 1
+end
+
 function M.is_win()
   return vim.fn.has("win32") or vim.fn.has("win64")
 end

@@ -163,6 +163,8 @@ local IPS = {
 local FFRT = "vendor/hisi/ffrt/basesrc"
 local UAPI = "vendor/hisi/ap/bionic/libc/kernel/uapi"
 local APKERNEL = "vendor/hisi/ap/kernel"
+local HWKERNEL = "vendor/huawei/extra/kernel"
+local KERNEL = "kernel/linux-6.6-lts"
 local ISP = { "vendor/hisi/include/isp", "vendor/hisi/isp" }
 local HISIODM = "vendor/hisi/odm"
 local HISIDTS = "device/hisi/customize"
@@ -225,8 +227,9 @@ function M.camera_dirs(filepath)
 
   local HISIODM_HAL = vim.g.odm_hal_repositories
   local dir2dirs = {
-    { CAMHAL, UAPI, ISP, HISIODM_HAL },
+    { CAMHAL, UAPI, APKERNEL, ISP, HISIODM_HAL },
     { CAMHAL, IPS },
+    { UAPI, APKERNEL, KERNEL, HWKERNEL },
     { CAMHAL, OHOS_CAMERA_FWK, AOSP_CAMERA_FWK },
     { OHOS_CAMERA_FWK, AOSP_CAMERA_FWK, HELPSFWK, HWJS },
   }

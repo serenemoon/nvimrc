@@ -7,7 +7,7 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
 -- LazyVim auto format
-vim.g.autoformat = true
+vim.g.autoformat = false
 
 -- Snacks animations
 -- Set to `false` to globally disable all snacks animations
@@ -40,7 +40,7 @@ vim.g.root_spec = { "lsp", { ".git", "lua" }, "cwd" }
 -- This sets `vim.o.shell` and does some additional configuration for:
 -- * pwsh
 -- * powershell
-if require("config.util").is_win() then
+if require("config.util").is_win() == 1 then
   LazyVim.terminal.setup("powershell")
 end
 
