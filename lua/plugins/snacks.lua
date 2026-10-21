@@ -49,6 +49,40 @@ local function move_sibling_edge(picker, last)
   end
 end
 
+-- 打开路径所在的目录：目录直接打开，文件则打开其父目录。
+local function open_path_dir(path)
+  path = vim.trim(path or "")
+  if path == "" then
+    vim.notify("No path found", vim.log.levels.WARN)
+    return
+  end
+
+  local abs = vim.fn.fnamemodify(vim.fn.expand(path), ":p")
+  local stat = vim.uv.fs_stat(abs)
+  if not stat then
+    vim.notify("Path not found: " .. path, vim.log.levels.WARN)
+    return
+  end
+  if stat.type ~= "directory" then
+    abs = vim.fn.fnamemodify(abs, ":p:h")
+  end
+  require("snacks_custom").open_focus_close(abs)
+end
+
+local function open_path_at_cursor()
+  local mode = vim.fn.mode()
+  if mode == "v" or mode == "V" or mode == "\22" then
+    local lines = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = mode })
+    open_path_dir(table.concat(lines, "\n"))
+    return
+  end
+
+  -- normal: 光标下的文件所在目录；没有 <cfile> 时回退到当前文件目录
+  local cfile = vim.fn.expand("<cfile>")
+  local dir = cfile ~= "" and vim.fn.expand("<cfile>:p:h") or vim.fn.expand("%:p:h")
+  open_path_dir(dir)
+end
+
 return {
   {
     "folke/snacks.nvim",
@@ -118,6 +152,7 @@ return {
       -- 让 <leader>/ 交给 which-key 的寄存器组(见下方 which-key spec)
       { "<leader>/", false, desc = "禁用 Grep (Root Dir)" },
       { "<leader>E", false, desc = "禁用 explorer CWD" },
+      { "<leader>e", false, desc = "禁用 explorer root" },
       {
         "<M-t>",
         function()
@@ -358,14 +393,28 @@ return {
         desc = "Open User Home Directory",
       },
       {
-        "<leader>Ec", -- 打开 stdpath("config")
+        "<leader>ee",
+        function()
+          require("snacks_custom").open_focus_close(LazyVim.root())
+        end,
+        desc = "打开项目 root dir",
+        mode = { "n", "x" },
+      },
+      {
+        "<leader>eE",
+        open_path_at_cursor,
+        desc = "打开光标下路径 / 选中路径",
+        mode = { "n", "x" },
+      },
+      {
+        "<leader>ec", -- 打开 stdpath("config")
         function()
           require("snacks_custom").open_focus_close(vim.fn.stdpath("config"))
         end,
         desc = "Open Vim Config Directory",
       },
       {
-        "<leader>Ed", -- 打开 stdpath("data")
+        "<leader>ed", -- 打开 stdpath("data")
         function()
           require("snacks_custom").open_focus_close(vim.fn.stdpath("data"))
         end,
