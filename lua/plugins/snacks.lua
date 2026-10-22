@@ -420,6 +420,34 @@ return {
         end,
         desc = "Open Vim Data Directory",
       },
+      {
+        "<leader>es", -- 打开 stdpath("state")
+        function()
+          require("snacks_custom").open_focus_close(vim.fn.stdpath("state"))
+        end,
+        desc = "Open Vim State Directory",
+      },
+      {
+        "<leader>eC", -- 打开 stdpath("cache")
+        function()
+          require("snacks_custom").open_focus_close(vim.fn.stdpath("cache"))
+        end,
+        desc = "Open Vim Cache Directory",
+      },
+      {
+        "<leader>ep",
+        function()
+          require("snacks_custom").open_focus_close(vim.fn.getcwd())
+        end,
+        desc = "Open PWD (Current Working Dirctory)",
+      },
+      {
+        "<leader>eh",
+        function()
+          require("snacks_custom").open_focus_close(vim.fn.expand("~"))
+        end,
+        desc = "Open Home Directory",
+      },
     },
   },
 }

@@ -182,6 +182,9 @@ local AOSP_CAMERA_FWK = {
   "frameworks/av/camera",
   "system/media/camera",
 }
+local OHOS_SDK = {
+  "prebuilts/ohos-sdk/linux/23/native/sysroot/usr/include",
+}
 
 --- 判断 rel 是否位于相对目录 prefix 之下(含自身)。
 local function is_under(rel, prefix)
@@ -228,7 +231,7 @@ function M.camera_dirs(filepath)
   local HISIODM_HAL = vim.g.odm_hal_repositories
   local dir2dirs = {
     { CAMHAL, UAPI, APKERNEL, ISP, HISIODM_HAL },
-    { CAMHAL, IPS },
+    { CAMHAL, IPS, OHOS_SDK },
     { UAPI, APKERNEL, KERNEL, HWKERNEL },
     { CAMHAL, OHOS_CAMERA_FWK, AOSP_CAMERA_FWK },
     { OHOS_CAMERA_FWK, AOSP_CAMERA_FWK, HELPSFWK, HWJS },

@@ -45,22 +45,6 @@ local function pick_tags()
     return
   end
 
-  -- 先确认当前文件在 tags 文件里确实有条目，避免打开一个空 picker。
-  local has_tags = false
-  for _, tag in ipairs(vim.fn.taglist(".*")) do
-    if same_file(tag.filename, file) then
-      has_tags = true
-      break
-    end
-  end
-
-  if not has_tags then
-    local hint = vim.fn.executable(ctags_exe) == 1 and "gutentags 可能还在生成索引，请稍后再试"
-      or ("未找到 " .. ctags_exe .. "，请先安装 universal-ctags 并加入 PATH")
-    vim.notify("当前文件没有 tags：" .. hint, vim.log.levels.WARN)
-    return
-  end
-
   Snacks.picker.tags({
     title = "Tags: " .. vim.fn.fnamemodify(file, ":t"),
     transform = function(item)
@@ -74,21 +58,6 @@ local function pick_repo_tags()
   local root = vim.fs.root(0, project_roots)
   if not root then
     vim.notify("当前文件不在项目仓库内，无法列出仓库 tags", vim.log.levels.WARN)
-    return
-  end
-
-  local has_tags = false
-  for _, tag in ipairs(vim.fn.taglist(".*")) do
-    if is_in_dir(tag.filename, root) then
-      has_tags = true
-      break
-    end
-  end
-
-  if not has_tags then
-    local hint = vim.fn.executable(ctags_exe) == 1 and "gutentags 可能还在生成索引，请稍后再试"
-      or ("未找到 " .. ctags_exe .. "，请先安装 universal-ctags 并加入 PATH")
-    vim.notify("当前仓库没有 tags：" .. hint, vim.log.levels.WARN)
     return
   end
 

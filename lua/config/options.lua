@@ -7,7 +7,7 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
 -- LazyVim auto format
-vim.g.autoformat = false
+vim.g.autoformat = true
 
 -- Snacks animations
 -- Set to `false` to globally disable all snacks animations
