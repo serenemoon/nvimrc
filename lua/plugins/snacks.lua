@@ -121,6 +121,19 @@ return {
             keys = {
               ["<C-f>"] = { "filename_only", mode = { "i", "n" } },
               ["<Esc>"] = { "close", mode = { "n", "i" } },
+              ["<S-Tab>"] = { "select_and_next", mode = { "n", "i" } },
+              ["<Tab>"] = { "cycle_win", mode = { "n", "i" } },
+            },
+          },
+          list = {
+            keys = {
+              ["<S-Tab>"] = { "select_and_next", mode = { "n", "x" } },
+              ["<Tab>"] = { "cycle_win", mode = { "n", "x" } },
+            },
+          },
+          preview = {
+            keys = {
+              ["<Tab>"] = { "cycle_win", mode = { "n", "x" } },
             },
           },
         },
@@ -163,7 +176,7 @@ return {
       {
         "<leader>R",
         function()
-          local word = vim.fn.expand("<cword>")
+          local word, from_visual = require("config.util").search_target()
           if word == "" then
             vim.notify("No word under cursor", vim.log.levels.WARN)
             return
@@ -171,7 +184,14 @@ return {
 
           -- resolve the git repo root of the current file
           local cwd = require("config.util").find_root({ ".git" })
-          Snacks.picker.grep({ search = word, cwd = cwd })
+          local opts = { search = word, cwd = cwd }
+          if from_visual then
+            -- visual 选区按字面搜索。grep 是 live 的:输入框的搜索词会直接驱动 rg,
+            -- 所以只能通过 rg 的 -F 保证字面匹配;不设 pattern,避免后续编辑搜索词时
+            -- 被固定的旧 pattern 过滤掉。
+            opts.args = { "-F" }
+          end
+          Snacks.picker.grep(opts)
         end,
         desc = "Search word under cursor (root grep)",
         mode = { "n", "x" },
@@ -204,16 +224,20 @@ return {
       {
         "<leader>L",
         function()
-          local word = vim.fn.expand("<cword>")
+          local word, from_visual = require("config.util").search_target()
           if word == "" then
             vim.notify("No word under cursor", vim.log.levels.WARN)
             return
           end
-          Snacks.picker.lines({
-            pattern = word,
-            search = "",
-            title = "Buffer Lines: ",
-          })
+          local opts = { pattern = word, search = "", title = "Buffer Lines: " }
+          if from_visual then
+            -- visual 选区按字面匹配:关掉模糊匹配,必要时用 \V 正则避免被当成 pattern 语法
+            local pattern, use_regex = require("config.util").search_pattern(word)
+            opts.pattern = pattern
+            opts.matcher = { regex = use_regex, fuzzy = false }
+            opts.title = "Buffer Lines: " .. word
+          end
+          Snacks.picker.lines(opts)
           vim.defer_fn(vim.cmd.stopinsert, 50)
         end,
         desc = "Search word under cursor (current buffer)",
@@ -268,7 +292,7 @@ return {
       {
         "<leader><leader>R",
         function()
-          local word = vim.fn.expand("<cword>")
+          local word, from_visual = require("config.util").search_target()
           if word == "" then
             vim.notify("No word under cursor", vim.log.levels.WARN)
             return
@@ -283,6 +307,8 @@ return {
             search = word,
             dirs = dirs,
             live = true,
+            -- visual 选区按字面搜索(rg -F);live 模式下不设 pattern,避免固定旧 pattern
+            args = from_visual and { "-F" } or nil,
             title = "Camera HAL Grep: " .. word,
           })
           vim.defer_fn(vim.cmd.stopinsert, 50)

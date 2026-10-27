@@ -47,6 +47,42 @@ function M.is_file_in_repo(target)
   return vim.fn.isdirectory(root) == 1 and vim.fn.isdirectory(vim.fs.joinpath(root, ".repo")) == 1
 end
 
+--- 取当前要搜索的目标文本:处于 visual(x)模式且选区在单行内时返回选中的字符串,
+--- 否则(非 visual,或选区跨多行)返回光标下的符号(<cword>)。
+--- @return string text 目标文本
+--- @return boolean from_visual text 是否来自 visual 选区
+function M.search_target()
+  local mode = vim.fn.mode()
+  if mode == "v" or mode == "V" or mode == "\22" then
+    -- 在 x 模式映射里 visualmode() 冷启动可能为空(会触发 E475),用 mode() 作为选区类型
+    local s = vim.fn.getpos("v")
+    local e = vim.fn.getpos(".")
+    if s[2] > e[2] or (s[2] == e[2] and s[3] > e[3]) then
+      s, e = e, s
+    end
+    -- 仅支持单行内的 visual 选择,跨行时退回 <cword>
+    if s[2] == e[2] then
+      return table.concat(vim.fn.getregion(s, e, { type = mode }), "\n"), true
+    end
+  end
+  return vim.fn.expand("<cword>"), false
+end
+
+--- 把文本转成 snacks picker 的 pattern,配合 matcher.fuzzy = false 做按字面匹配。
+--- 普通标识符原样返回(输入框里显示干净);含空白、冒号,或首尾是 `!`/`^`/`'`/`$`
+--- 这类会被 matcher 当成语法的字符时,改用 `\V` 字面正则并切到 regex 模式。
+--- @param text string
+--- @return string pattern
+--- @return boolean use_regex 是否需要 matcher.regex = true
+function M.search_pattern(text)
+  local plain = not text:find("[%s:]") and not text:match("^[!'^]") and text:sub(-1) ~= "$"
+  if plain then
+    return text, false
+  end
+  local pattern = [[\V]] .. text:gsub("\\", "\\\\")
+  return text == text:lower() and ([[\c]] .. pattern) or pattern, true
+end
+
 function M.is_win()
   return vim.fn.has("win32") or vim.fn.has("win64")
 end

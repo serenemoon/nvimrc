@@ -135,14 +135,14 @@
 | 快捷键 | 功能 |
 |--------|------|
 | `<leader>/` | which-key 弹出寄存器列表，选中后以该寄存器内容在当前 git 仓库内 grep（`/` 寄存器会先去掉 `\<` `\>`） |
-| `<leader>R` | 在当前 git 仓库内 grep 光标下 symbol |
+| `<leader>R` | 在当前 git 仓库内 grep 光标下 symbol（visual 模式下 grep 所选字符串） |
 | `<leader>r` | 在当前 git 仓库内 live grep |
 | `<leader>l` | 在当前 buffer 内按行 grep |
-| `<leader>L` | 在当前 buffer 内搜索光标下 symbol |
+| `<leader>L` | 在当前 buffer 内搜索光标下 symbol（visual 模式下搜索所选字符串） |
 | `<leader>m` | 最近打开的文件 |
 | `<leader>M` | 最近打开的文件 (仅当前 `.repo` 仓库) |
 | `<leader><leader>r` | 在 camera HAL 目录下 live grep |
-| `<leader><leader>R` | 在 camera HAL 目录下 grep 光标下 symbol |
+| `<leader><leader>R` | 在 camera HAL 目录下 grep 光标下 symbol（visual 模式下 grep 所选字符串） |
 | `gF` | 以光标下文件（`expand('<cfile>')`）的文件名为初始输入，在 camera HAL 目录下查找对应文件（`files`，可继续编辑并回车打开） |
 | `,fF` | 查找 camera HAL 目录下的文件 |
 | `,ff` | 查找当前 git 仓库下的文件 |
