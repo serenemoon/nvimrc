@@ -115,6 +115,30 @@ return {
           filename_only = function(picker)
             require("snacks_custom").toggle_filename_only(picker)
           end,
+          --- `:`:打开 ex 命令行并预填当前条目(文件或目录)的绝对路径,
+          --- 光标停在该行最前面那个空格之前,便于在路径前直接敲命令
+          --- (如输入 `!ls -l` 变成 `:!ls -l <path>`)。
+          explorer_cmdline_path = function(picker)
+            local item = picker:current()
+            if not item then
+              return
+            end
+            local path = Snacks.picker.util.path(item)
+            if not path then
+              return
+            end
+            local text = " " .. vim.fn.fnameescape(path)
+            -- 命令行要等 `:` 被处理后才会打开,那时才能改内容,
+            -- 所以挂一个一次性的 CmdlineEnter 去预填。
+            vim.api.nvim_create_autocmd("CmdlineEnter", {
+              once = true,
+              callback = function()
+                -- 光标列 1 = 行首,即空格之前
+                pcall(vim.fn.setcmdline, text, 1)
+              end,
+            })
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(":", true, false, true), "n", false)
+          end,
         },
         win = {
           input = {
@@ -153,6 +177,8 @@ return {
                   -- 直接跳到同一目录内的最后一个/第一个同级节点
                   ["J"] = { "explorer_sibling_last", mode = { "n" } },
                   ["K"] = { "explorer_sibling_first", mode = { "n" } },
+                  -- 打开 ex 命令行并填入当前文件/目录的绝对路径
+                  [":"] = { "explorer_cmdline_path", mode = { "n" } },
                 },
               },
             },
@@ -201,7 +227,8 @@ return {
         function()
           -- resolve the git repo root of the current file
           local cwd = require("config.util").find_root({ ".git" })
-          Snacks.picker.grep({ cwd = cwd, live = true })
+          -- 过滤掉任意层级的 tests 目录(如 tests/、src/tests/)
+          Snacks.picker.grep({ cwd = cwd, live = true, exclude = { "**/tests/**" } })
         end,
         desc = "Search word (repo grep)",
         mode = { "n", "x" },

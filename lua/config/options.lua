@@ -86,7 +86,7 @@ opt.inccommand = "nosplit" -- preview incremental substitute
 opt.jumpoptions = "view"
 opt.laststatus = 3 -- global statusline
 opt.linebreak = true -- Wrap lines at convenient points
-opt.list = true -- Show some invisible characters (tabs...
+opt.list = false -- Show some invisible characters (tabs...
 opt.mouse = ""
 opt.number = true -- Print line number
 opt.pumblend = 10 -- Popup blend
@@ -119,6 +119,10 @@ opt.virtualedit = "block" -- Allow cursor to move where there is no text in visu
 opt.wildmode = "longest:full,full" -- Command-line completion mode
 opt.winminwidth = 5 -- Minimum window width
 opt.wrap = false -- Disable line wrap
+
+opt.ts = 8 -- tabstop 8 spaces
+opt.sw = 4 --
+opt.cindent = 4 --
 
 -- Fix markdown indentation settings
 vim.g.markdown_recommended_style = 0

@@ -136,7 +136,7 @@
 |--------|------|
 | `<leader>/` | which-key 弹出寄存器列表，选中后以该寄存器内容在当前 git 仓库内 grep（`/` 寄存器会先去掉 `\<` `\>`） |
 | `<leader>R` | 在当前 git 仓库内 grep 光标下 symbol（visual 模式下 grep 所选字符串） |
-| `<leader>r` | 在当前 git 仓库内 live grep |
+| `<leader>r` | 在当前 git 仓库内 live grep（排除各层级 `tests/` 目录） |
 | `<leader>l` | 在当前 buffer 内按行 grep |
 | `<leader>L` | 在当前 buffer 内搜索光标下 symbol（visual 模式下搜索所选字符串） |
 | `<leader>m` | 最近打开的文件 |
@@ -168,6 +168,7 @@
 | `-` | 水平分屏打开 |
 | `<C-j>` | 在同一目录内的下一个同级节点间移动（跳过已展开目录的子节点） |
 | `<C-k>` | 在同一目录内的上一个同级节点间移动（跳过已展开目录的子节点） |
+| `:` | 打开 ex 命令行，行首留一个空格并在其后填入当前文件/目录的绝对路径（已转义），光标停在行首，便于直接输入命令操作该文件 |
 
 > `<C-j>`/`<C-k>` 由 `lua/plugins/snacks.lua` 中的 `explorer_sibling_next` / `explorer_sibling_prev` 实现：同级判定基于 item 的 `parent` 引用，顶层节点的 `parent` 为 `nil`，同归一组。
 >
